@@ -15,10 +15,8 @@ def compare(name, result):
     # Stringify the root, <Envelope/> nodes of the two documents.
     expected_text = etree.tostring(xml, pretty_print=False)
     result_text = etree.tostring(result, pretty_print=False)
-    print('Expected')
-    print(expected_text)
-    print('Result')
-    print(result_text)
-
     # Compare the results.
+    if expected_text != result_text:
+        print(expected_text)
+        print(result_text)
     assert expected_text == result_text

@@ -1,61 +1,23 @@
 import base64
 import hashlib
-import struct
-import sys
 
-from OpenSSL import crypto
+from cryptography.hazmat.primitives import serialization, asymmetric
+from cryptography.x509.oid import ExtensionOID
+from cryptography.x509 import load_der_x509_certificate
+from cryptography.hazmat.backends import default_backend
 from lxml import etree
 
 from . import constants
-
-USING_PYTHON2 = True if sys.version_info < (3, 0) else False
-b64_intro = 76
-
-
-def b64_print(s):
-    if USING_PYTHON2:
-        string = str(s)
-    else:
-        string = str(s, 'utf8')
-    return '\n' + ('\n'.join(
-        string[pos:pos + b64_intro] for pos in range(0, len(string), b64_intro)
-    )) + '\n'
-
-
-def long_to_bytes(n, blocksize=0):
-    """long_to_bytes(n:long, blocksize:int) : string
-    Convert a long integer to a byte string.
-    If optional blocksize is given and greater than zero, pad the front of the
-    byte string with binary zeros so that the length is a multiple of
-    blocksize.
-    """
-    # after much testing, this algorithm was deemed to be the fastest
-    s = b''
-    if USING_PYTHON2:
-        n = long(n)  # noqa
-    pack = struct.pack
-    while n > 0:
-        s = pack(b'>I', n & 0xffffffff) + s
-        n = n >> 32
-    # strip off leading zeros
-    for i in range(len(s)):
-        if s[i] != b'\000'[0]:
-            break
-    else:
-        # only happens when n == 0
-        s = b'\000'
-        i = 0
-    s = s[i:]
-    # add back some pad bytes.  this could be done more efficiently w.r.t. the
-    # de-padding being done above, but sigh...
-    if blocksize > 0 and len(s) % blocksize:
-        s = (blocksize - len(s) % blocksize) * b'\000' + s
-    return s
+from .utils import long_to_bytes, b64_print, create_node, get_rdns_name
 
 
 class SignatureContext:
-    def __init__(self, key=False):
-        self.key = key
+    def __init__(self):
+        self.x509 = None
+        self.crl = None
+        self.private_key = None
+        self.public_key = None
+        self.key_name = ""
 
     def sign(self, node):
         signed_info = node.find('ds:SignedInfo', namespaces=constants.NS_MAP)
@@ -71,38 +33,38 @@ class SignatureContext:
         x509_data = key_info.find('ds:X509Data', namespaces=constants.NS_MAP)
         if x509_data is not None:
             self.fill_x509_data(x509_data)
+        key_name = key_info.find('ds:KeyName', namespaces=constants.NS_MAP)
+        if key_name is not None:
+            key_name.text = self.key_name
         key_value = key_info.find('ds:KeyValue', namespaces=constants.NS_MAP)
         if key_value is not None:
-            key_value.text='\n'
-            if constants.TransformUsageSignatureMethod[signature_method][
-                'key_value'
-            ] == 'rsa':
-                rsa_key_value = etree.SubElement(
-                    key_value, etree.QName(constants.DSigNs, 'RSAKeyValue')
+            key_value.text = '\n'
+            public_key_class = constants.TransformUsageSignatureMethod[
+                signature_method
+            ]['public_key_class']
+            if not isinstance(self.public_key, public_key_class):
+                raise Exception('Key not compatible with signature method')
+            if isinstance(self.public_key, asymmetric.rsa.RSAPublicKey):
+                rsa_key_value = create_node(
+                    'RSAKeyValue', key_value, constants.DSigNs, '\n', '\n'
                 )
-                rsa_key_value.tail = '\n'
-                rsa_key_value.text = '\n'
-                s = base64.b64encode(
-                    long_to_bytes(
-                        self.key.get_privatekey().to_cryptography_key(
-                        ).public_key().public_numbers().n
-                    )
-                )
-                modulus = etree.SubElement(
-                    rsa_key_value, etree.QName(constants.DSigNs, 'Modulus')
-                )
-                modulus.tail = '\n'
-                modulus.text = b64_print(s)
-                exponent = etree.SubElement(
+                create_node(
+                    'Modulus',
                     rsa_key_value,
-                    etree.QName(constants.DSigNs, 'Exponent')
+                    constants.DSigNs,
+                    tail='\n',
+                    text=b64_print(base64.b64encode(long_to_bytes(
+                        self.public_key.public_numbers().n
+                    )))
                 )
-                exponent.tail = '\n'
-                exponent.text = base64.b64encode(
-                    long_to_bytes(
-                        self.key.get_privatekey().to_cryptography_key(
-                        ).public_key().public_numbers().e
-                    )
+                create_node(
+                    'Exponent',
+                    rsa_key_value,
+                    constants.DSigNs,
+                    tail='\n',
+                    text=base64.b64encode(long_to_bytes(
+                        self.private_key.public_key().public_numbers().e
+                    ))
                 )
         return
 
@@ -112,20 +74,29 @@ class SignatureContext:
         )
         if x509_issuer_serial is not None:
             self.fill_x509_issuer_name(x509_issuer_serial)
+
+        x509_crl = x509_data.find('ds:X509CRL', namespaces=constants.NS_MAP)
+        if x509_crl is not None and self.crl is not None:
+            x509_data.text = base64.b64encode(
+                self.crl.public_bytes(serialization.Encoding.DER)
+            )
+        x509_subject = x509_data.find(
+            'ds:X509SubjectName', namespaces=constants.NS_MAP
+        )
+        if x509_subject is not None:
+            x509_subject.text = get_rdns_name(self.x509.subject.rdns)
         x509_ski = x509_data.find('ds:X509SKI', namespaces=constants.NS_MAP)
         if x509_ski is not None:
-            x509_ski.text = self.key.get_certificate(
-            ).extensions.get_extension_for_oid(
-                crypto.x509.oid.ExtensionOID.SUBJECT_KEY_IDENTIFIER
-            )
+            x509_ski.text = base64.b64encode(
+                self.x509.extensions.get_extension_for_oid(
+                    ExtensionOID.SUBJECT_KEY_IDENTIFIER
+                ).value.digest)
         x509_certificate = x509_data.find(
             'ds:X509Certificate', namespaces=constants.NS_MAP
         )
         if x509_certificate is not None:
             s = base64.b64encode(
-                crypto.dump_certificate(
-                    crypto.FILETYPE_ASN1, self.key.get_certificate()
-                )
+                self.x509.public_bytes(encoding=serialization.Encoding.DER)
             )
             x509_certificate.text = b64_print(s)
 
@@ -133,19 +104,13 @@ class SignatureContext:
         x509_issuer_name = x509_issuer_serial.find(
             'ds:X509IssuerName', namespaces=constants.NS_MAP
         )
-        if x509_issuer_name:
-            issuer = ''
-            comps = self.key.get_certificate().get_issuer().get_components()
-            for entry in comps:
-                issuer = entry[0] + '=' + entry[1] + (
-                    (',' + issuer) if len(issuer) > 0 else ''
-                )
-                x509_issuer_name.text = issuer
+        if x509_issuer_name is not None:
+            x509_issuer_name.text = get_rdns_name(self.x509.issuer.rdns)
         x509_issuer_number = x509_issuer_serial.find(
             'ds:X509SerialNumber', namespaces=constants.NS_MAP
         )
-        if x509_issuer_number:
-            x509_issuer_number.text = self.key.get_certificate().get_serial()
+        if x509_issuer_number is not None:
+            x509_issuer_number.text = str(self.x509.serial_number)
 
     def fill_signed_info(self, signed_info):
         canonicalization_method = signed_info.find(
@@ -170,7 +135,7 @@ class SignatureContext:
             ):
                 raise Exception(
                     'Reference with URI:"' +
-                    reference.get("URI") +
+                    reference.get("URI", '') +
                     '" failed'
                 )
         return self.calculate_signature(node, False)
@@ -179,18 +144,18 @@ class SignatureContext:
         method = transform.get('Algorithm')
         if method not in constants.TransformUsageDSigTransform:
             raise Exception('Method not allowed')
+        if method in constants.TransformUsageC14NMethod:
+            return self.canonicalization(method, etree.fromstring(node))
         if method == constants.TransformEnveloped:
             tree = transform.getroottree()
             root = etree.fromstring(node)
-            map = {}
-            map.update(transform.nsmap)
-            map.update(root.nsmap)
-            signature = root.xpath(
-                tree.getpath(
-                    transform.getparent().getparent().getparent().getparent()),
-                namespaces=map)[0]
+            signature = root.find(
+                tree.getelementpath(
+                    transform.getparent().getparent().getparent().getparent()
+                )
+            )
             root.remove(signature)
-            return self.canonicalization(canonicalization_method, root)
+            return etree.tostring(root)
         raise Exception('Method not found')
 
     def canonicalization(self, method, node):
@@ -213,11 +178,9 @@ class SignatureContext:
 
     def get_uri(self, uri, reference, canonicalization_method):
         if uri == "":
-            return self.canonicalization(
-                canonicalization_method, reference.getroottree()
-            )
+            return etree.tostring(reference.getroottree())
         if uri.startswith("#"):
-            xpath_query = "//*[@*[local-name() = '{}']=$uri]".format('Id')
+            xpath_query = "//*[@*[local-name() = '{}']=$uri]".format('ID')
             results = reference.getroottree().xpath(
                 xpath_query, uri=uri.lstrip("#")
             )
@@ -226,10 +189,20 @@ class SignatureContext:
                     "Ambiguous reference URI {} resolved to {} nodes".format(
                         uri, len(results)))
             elif len(results) == 1:
-                return self.canonicalization(
-                    canonicalization_method, results[0]
-                )
+                return etree.tostring(results[0])
         raise Exception('URI cannot be readed')
+
+    def get_public_key(self, sign):
+        x509_certificate = sign.find(
+            'ds:KeyInfo/ds:X509Data/ds:X509Certificate',
+            namespaces={'ds': constants.DSigNs}
+        )
+        if x509_certificate is not None:
+            return load_der_x509_certificate(
+                base64.b64decode(x509_certificate.text),
+                default_backend()
+            ).public_key()
+        return self.public_key
 
     def calculate_reference(self, canonicalization_method, reference,
                             sign=True):
@@ -250,7 +223,7 @@ class SignatureContext:
             ).get('Algorithm'), node
         )
         if not sign:
-            return digest_value == reference.find(
+            return digest_value.decode() == reference.find(
                 'ds:DigestValue', namespaces=constants.NS_MAP
             ).text
         reference.find(
@@ -270,32 +243,26 @@ class SignatureContext:
             raise Exception('Method not accepted')
         signed_info = self.canonicalization(canonicalization_method,
                                             signed_info_xml)
+        digest = constants.TransformUsageSignatureMethod[signature_method][
+            'digest']
         if not sign:
             signature_value = node.find('ds:SignatureValue',
                                         namespaces=constants.NS_MAP).text
-            x509 = crypto.load_certificate(
-                crypto.FILETYPE_ASN1,
-                base64.b64decode(
-                    node.find(
-                        'ds:KeyInfo/ds:X509Data/ds:X509Certificate',
-                        namespaces=constants.NS_MAP
-                    ).text
-                )
-            )
-            return crypto.verify(
-                x509,
+            public_key = self.get_public_key(node)
+
+            public_key.verify(
                 base64.b64decode(signature_value),
                 signed_info,
-                constants.TransformUsageSignatureMethod[signature_method][
-                    'digest']
+                asymmetric.padding.PKCS1v15(),
+                digest()
             )
         else:
             s = base64.b64encode(
-                crypto.sign(
-                    self.key.get_privatekey(),
+                self.private_key.sign(
                     signed_info,
-                    constants.TransformUsageSignatureMethod[signature_method][
-                        'digest'])
+                    asymmetric.padding.PKCS1v15(),
+                    digest()
+                )
             )
             node.find(
                 'ds:SignatureValue', namespaces=constants.NS_MAP

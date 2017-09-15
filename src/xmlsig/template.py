@@ -1,70 +1,60 @@
 from lxml import etree
 
 from .constants import *
+from .utils import create_node
 
 
 def add_key_name(node, name=False):
-    key_name = etree.SubElement(node, etree.QName(DSigNs, 'KeyName'))
+    node.text = '\n'
+    key_name = create_node('KeyName', node, DSigNs, tail='\n')
     if name:
         key_name.set('Name', name)
-    key_name.tail = '\n'
     return key_name
 
 
 def add_key_value(node):
-    key_value = etree.SubElement(node, etree.QName(DSigNs, 'KeyValue'))
-    key_value.tail = '\n'
-    return key_value
+    return create_node('KeyValue', node, DSigNs, tail='\n')
 
 
-def add_reference(node, digest_method, id=False, uri="", type=False):
-    reference = etree.SubElement(
+def add_reference(node, digest_method, id=False, uri=False, type=False):
+    reference = create_node(
+        'Reference',
         node.find('{' + DSigNs + '}SignedInfo'),
-        etree.QName(DSigNs, 'Reference')
+        DSigNs,
+        tail='\n',
+        text='\n'
     )
-    reference.text = '\n'
-    reference.tail = '\n'
     if id:
         reference.set('Id', id)
-    reference.set('URI', uri)
+    if uri:
+        reference.set('URI', uri)
     if type:
         reference.set('Type', type)
-    digest_method = etree.SubElement(
-        reference,
-        etree.QName(DSigNs, 'DigestMethod'),
-        attrib={'Algorithm': digest_method}
+    digest_method_node = create_node(
+        'DigestMethod', reference, DSigNs, tail='\n'
     )
-    digest_method.tail = '\n'
-    digest_value = etree.SubElement(
-        reference, etree.QName(DSigNs, 'DigestValue')
-    )
-    digest_value.tail = '\n'
+    digest_method_node.set('Algorithm', digest_method)
+    create_node('DigestValue', reference, DSigNs, tail='\n')
     return reference
 
 
 def add_transform(node, transform):
     transforms_node = node.find('ds:Transforms', namespaces=NS_MAP)
     if transforms_node is None:
-        transforms_node = etree.Element(
-            etree.QName(DSigNs, 'Transforms')
+        transforms_node = create_node(
+            'Transforms', ns=DSigNs, tail='\n', text='\n'
         )
-        transforms_node.tail = '\n'
-        transforms_node.text = '\n'
         node.insert(0, transforms_node)
-    transform_node = etree.SubElement(
-        transforms_node,
-        etree.QName(DSigNs, 'Transform'),
-        attrib={'Algorithm': transform}
+    transform_node = create_node(
+        'Transform', transforms_node, DSigNs, tail='\n'
     )
-    transform_node.tail = '\n'
+    transform_node.set('Algorithm', transform)
     return transform_node
 
 
 def add_x509_data(node):
     node.text = '\n'
-    data = etree.SubElement(node, etree.QName(DSigNs, 'X509Data'))
-    data.tail = '\n'
-    return data
+    return create_node('X509Data', node, DSigNs, tail='\n')
 
 
 def create(c14n_method=False, sign_method=False, name=False, ns='ds'):
@@ -72,23 +62,16 @@ def create(c14n_method=False, sign_method=False, name=False, ns='ds'):
     node.text = '\n'
     if name:
         node.set('Id', name)
-    signed_info = etree.SubElement(node, etree.QName(DSigNs, 'SignedInfo'))
-    signed_info.text = '\n'
-    signed_info.tail = '\n'
-    canonicalization = etree.SubElement(
-        signed_info,
-        etree.QName(DSigNs, 'CanonicalizationMethod'),
-        attrib={'Algorithm': c14n_method}
+    signed_info = create_node('SignedInfo', node, DSigNs, tail='\n', text='\n')
+    canonicalization = create_node(
+        'CanonicalizationMethod', signed_info, DSigNs, tail='\n'
     )
-    canonicalization.tail = '\n'
-    signature_method = etree.SubElement(
-        signed_info,
-        etree.QName(DSigNs, 'SignatureMethod'),
-        attrib={'Algorithm': sign_method}
+    canonicalization.set('Algorithm', c14n_method)
+    signature_method = create_node(
+        'SignatureMethod', signed_info, DSigNs, tail='\n'
     )
-    signature_method.tail = '\n'
-    value = etree.SubElement(node, etree.QName(DSigNs, 'SignatureValue'))
-    value.tail = '\n'
+    signature_method.set('Algorithm', sign_method)
+    create_node('SignatureValue', node, DSigNs, tail='\n')
     return node
 
 
@@ -96,8 +79,7 @@ def ensure_key_info(node, id=False):
     if node.find('{' + DSigNs + '}KeyInfo'):
         key_info = node.find('{' + DSigNs + '}KeyInfo')
     else:
-        key_info = etree.Element(etree.QName(DSigNs, 'KeyInfo'))
-        key_info.tail = '\n'
+        key_info = create_node('KeyInfo', ns=DSigNs, tail='\n')
         node.insert(2, key_info)
     if id:
         key_info.set('Id', id)
@@ -106,48 +88,34 @@ def ensure_key_info(node, id=False):
 
 def x509_data_add_certificate(node):
     node.text = '\n'
-    cert = etree.SubElement(node, etree.QName(DSigNs, 'X509Certificate'))
-    cert.tail = '\n'
-    return cert
+    return create_node('X509Certificate', node, DSigNs, tail='\n')
 
 
 def x509_data_add_crl(node):
     node.text = '\n'
-    crl = etree.SubElement(node, etree.QName(DSigNs, 'X509CRL'))
-    crl.tail = '\n'
-    return crl
+    return create_node('X509CRL', node, DSigNs, tail='\n')
 
 
 def x509_data_add_issuer_serial(node):
     node.text = '\n'
-    issuer = etree.SubElement(node, etree.QName(DSigNs, 'X509IssuerSerial'))
-    issuer.tail = '\n'
-    return issuer
+    return create_node('X509IssuerSerial', node, DSigNs, tail='\n')
 
 
 def x509_data_add_ski(node):
     node.text = '\n'
-    ski = etree.SubElement(node, etree.QName(DSigNs, 'X509SKI'))
-    ski.tail = '\n'
-    return ski
+    return create_node('X509SKI', node, DSigNs, tail='\n')
 
 
 def x509_data_add_subject_name(node):
     node.text = '\n'
-    subject = etree.SubElement(node, etree.QName(DSigNs, 'X509SubjectName'))
-    subject.tail = '\n'
-    return subject
+    return create_node('X509SubjectName', node, DSigNs, tail='\n')
 
 
 def x509_issuer_serial_add_issuer_name(node):
     node.text = '\n'
-    name = etree.SubElement(node, etree.QName(DSigNs, 'X509IssuerName'))
-    name.tail = '\n'
-    return name
+    return create_node('X509IssuerName', node, DSigNs, tail='\n')
 
 
 def x509_issuer_serial_add_serial_number(node):
     node.text = '\n'
-    number = etree.SubElement(node, etree.QName(DSigNs, 'X509SerialNumber'))
-    number.tail = '\n'
-    return number
+    return create_node('X509SerialNumber', node, DSigNs, tail='\n')

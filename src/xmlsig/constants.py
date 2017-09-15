@@ -1,3 +1,6 @@
+from cryptography.hazmat import primitives
+from cryptography.x509 import oid
+
 # Namespaces
 DSigNs = 'http://www.w3.org/2000/09/xmldsig#'
 EncNs = 'http://www.w3.org/2001/04/xmlenc#'
@@ -33,6 +36,7 @@ TransformKWAes256 = ''
 TransformDes3Cbc = ''
 TransformKWDes3 = ''
 TransformDsaSha1 = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1'
+TransformDsaSha256 = 'http://www.w3.org/2000/09/xmldsig#dsa-sha256'
 TransformEcdsaSha1 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha1'
 TransformEcdsaSha224 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha224'
 TransformEcdsaSha256 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256'
@@ -67,15 +71,30 @@ TransformUsageDSigTransform = [
     TransformEnveloped
 ]
 TransformUsageC14NMethod = {
-    TransformInclC14N: {'method': 'c14n', 'exclusive': False,
-                        'comments': False},
-    TransformInclC14NWithComments: {'method': 'c14n', 'exclusive': False,
-                                    'comments': True},
-    TransformExclC14N: {'method': 'c14n', 'exclusive': True,
-                        'comments': False},
-    TransformExclC14NWithComments: {'method': 'c14n', 'exclusive': True,
-                                    'comments': False}
+    TransformInclC14N: {
+        'method': 'c14n',
+        'exclusive': False,
+        'comments': False
+    },
+    TransformInclC14NWithComments: {
+        'method': 'c14n',
+        'exclusive': False,
+        'comments': True
+    },
+    TransformExclC14N: {
+        'method': 'c14n',
+        'exclusive': True,
+        'comments': False
+    },
+    TransformExclC14NWithComments: {
+        'method': 'c14n',
+        'exclusive': True,
+        'comments': False
+    }
 }
+
+TransformUsageDSigTransform.extend(TransformUsageC14NMethod.keys())
+
 TransformUsageDigestMethod = {
     TransformMd5: 'md5',
     TransformSha1: 'sha1',
@@ -86,16 +105,57 @@ TransformUsageDigestMethod = {
     TransformRipemd160: 'ripemd160',
 }
 TransformUsageSignatureMethod = {
-    TransformRsaMd5: {'digest': 'md5', 'key_value': 'rsa'},
-    TransformRsaSha1: {'digest': 'sha1', 'key_value': 'rsa'},
-    TransformRsaSha224: {'digest': 'sha224', 'key_value': 'rsa'},
-    TransformRsaSha256: {'digest': 'sha256', 'key_value': 'rsa'},
-    TransformRsaSha384: {'digest': 'sha384', 'key_value': 'rsa'},
-    TransformRsaSha512: {'digest': 'sha512', 'key_value': 'rsa'},
+    TransformRsaMd5: {
+        'digest': primitives.hashes.MD5,
+        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
+        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+    },
+    TransformRsaSha1: {
+        'digest': primitives.hashes.SHA1,
+        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
+        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+    },
+    TransformRsaSha224: {
+        'digest': primitives.hashes.SHA224,
+        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
+        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+    },
+    TransformRsaSha256: {
+        'digest': primitives.hashes.SHA256,
+        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
+        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+    },
+    TransformRsaSha384: {
+        'digest': primitives.hashes.SHA384,
+        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
+        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+    },
+    TransformRsaSha512: {
+        'digest': primitives.hashes.SHA512,
+        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
+        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+    },
+    TransformDsaSha1: {
+        'digest': primitives.hashes.SHA1,
+        'private_key_class': primitives.asymmetric.dsa.DSAPrivateKey,
+        'public_key_class': primitives.asymmetric.dsa.DSAPublicKey
+    },
+    TransformDsaSha256: {
+        'digest': primitives.hashes.SHA256,
+        'private_key_class': primitives.asymmetric.dsa.DSAPrivateKey,
+        'public_key_class': primitives.asymmetric.dsa.DSAPublicKey
+    },
 }
-TransformUsageEncryptionMethod = [
-
-]
-TransformUsageAny = [
-
-]
+TransformUsageEncryptionMethod = {}
+TransformUsageAny = {}
+OID_NAMES = {
+    oid.NameOID.COMMON_NAME: 'CN',
+    oid.NameOID.COUNTRY_NAME: 'C',
+    oid.NameOID.DOMAIN_COMPONENT: 'DC',
+    oid.NameOID.EMAIL_ADDRESS: 'E',
+    oid.NameOID.GIVEN_NAME: 'G',
+    oid.NameOID.LOCALITY_NAME: 'L',
+    oid.NameOID.ORGANIZATION_NAME: 'O',
+    oid.NameOID.ORGANIZATIONAL_UNIT_NAME: 'OU',
+    oid.NameOID.SURNAME: 'SN'
+}

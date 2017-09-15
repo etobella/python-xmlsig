@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 
 install_requires = [
     'lxml>=3.0.0',
-    'PyOpenSSL'
+    'cryptography'
 ]
 
 async_require = []  # see below
@@ -17,7 +17,7 @@ tests_require = [
     'pytest-cov==2.5.1',
     'pytest==3.1.3',
     'requests_mock>=0.7.0',
-
+    'PyOpenSSL',
     # Linting
     'isort==4.2.5',
     'flake8==3.3.0',
@@ -34,9 +34,9 @@ if sys.version_info > (3, 4, 2):
 
 setup(
     name='xmlsig',
-    version='0.0.1',
+    version='0.0.2',
     description='Python based XML signature',
-    long_description='XML Signature created with PyOpenSSL and lxml',
+    long_description='XML Signature created with cryptography and lxml',
     author="Enric Tobella Alomar",
     author_email="etobella@creublanca.es",
     url='http://docs.python-src.org',
@@ -54,7 +54,7 @@ setup(
 
     license='AGPL',
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
