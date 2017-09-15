@@ -11,6 +11,30 @@ from .base import parse_xml, compare, BASE_DIR
 
 
 class TestSignature(unittest.TestCase):
+    def tst_sign_dsa(self):
+        # https://www.w3.org/TR/2008/REC-xmldsig-core-20080610/#sec-DSA
+        # review I2OP
+        root = parse_xml("sign-dsa-in.xml")
+        sign = root.xpath(
+            '//ds:Signature', namespaces={'ds': xmlsig.constants.DSigNs}
+        )[0]
+        self.assertIsNotNone(sign)
+
+        ctx = xmlsig.SignatureContext()
+        with open(path.join(BASE_DIR, "dsakey.pem"), "rb") as key_file:
+            ctx.private_key = serialization.load_pem_private_key(
+                key_file.read(),
+                password=None,
+                backend=default_backend()
+            )
+        ctx.key_name = 'dsakey.pem'
+        ctx.public_key = ctx.private_key.public_key()
+        self.assertEqual("dsakey.pem", ctx.key_name)
+
+        ctx.sign(sign)
+        #ctx.verify(sign)
+        compare('sign-dsa-out.xml', root)
+
     def test_sign_generated_template_pem_with_x509(self):
         """
         Should sign a file using a dynamicaly created template, key from PEM
@@ -45,9 +69,10 @@ class TestSignature(unittest.TestCase):
         xmlsig.template.x509_data_add_certificate(x509_data)
         # Create a digital signature context (no key manager is needed).
         # Load private key (assuming that there is no password).
-        key = crypto.load_pkcs12(
-            open(path.join(BASE_DIR, "keyStore.p12"), "rb").read()
-        )
+        with open(path.join(BASE_DIR, "keyStore.p12"), "rb") as key_file:
+            key = crypto.load_pkcs12(
+                key_file.read()
+            )
 
         assert key is not None
 
@@ -223,7 +248,7 @@ class TestSignature(unittest.TestCase):
         xmlsig.template.x509_issuer_serial_add_issuer_name(x509_issuer_serial)
         xmlsig.template.x509_issuer_serial_add_serial_number(
             x509_issuer_serial)
-
+        xmlsig.template.add_key_value(ki)
         ctx = xmlsig.SignatureContext()
         with open(path.join(BASE_DIR, "rsakey.pem"), "rb") as key_file:
             ctx.private_key = serialization.load_pem_private_key(

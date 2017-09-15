@@ -1,6 +1,10 @@
+# -*- coding: utf-8 -*-
+# © 2017 Creu Blanca
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+
 from lxml import etree
 
-from .constants import *
+from .constants import DSigNs, NS_MAP
 from .utils import create_node
 
 

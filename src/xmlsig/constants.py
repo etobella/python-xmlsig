@@ -1,16 +1,15 @@
+# -*- coding: utf-8 -*-
+# © 2017 Creu Blanca
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+
 from cryptography.hazmat import primitives
-from cryptography.x509 import oid
+
+from .algorithms.dsa import DSAMethod
+from .algorithms.rsa import RSAMethod
+from .ns import DSigNs
 
 # Namespaces
-DSigNs = 'http://www.w3.org/2000/09/xmldsig#'
-EncNs = 'http://www.w3.org/2001/04/xmlenc#'
-XPathNs = 'http://www.w3.org/TR/1999/REC-xpath-19991116'
-XPath2Ns = 'http://www.w3.org/2002/06/xmldsig-filter2'
-XPointerNs = 'http://www.w3.org/2001/04/xmldsig-more/xptr'
-Soap11Ns = 'http://schemas.xmlsoap.org/soap/envelope/'
-Soap12Ns = 'http://www.w3.org/2002/06/soap-envelope'
-NsExcC14N = 'http://www.w3.org/2001/10/xml-exc-c14n#'
-NsExcC14NWithComments = 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments'
+
 
 NS_MAP = {'ds': DSigNs}
 
@@ -36,7 +35,7 @@ TransformKWAes256 = ''
 TransformDes3Cbc = ''
 TransformKWDes3 = ''
 TransformDsaSha1 = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1'
-TransformDsaSha256 = 'http://www.w3.org/2000/09/xmldsig#dsa-sha256'
+TransformDsaSha256 = 'http://www.w3.org/2009/xmldsig11#dsa-sha256'
 TransformEcdsaSha1 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha1'
 TransformEcdsaSha224 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha224'
 TransformEcdsaSha256 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256'
@@ -66,7 +65,9 @@ TransformSha256 = 'http://www.w3.org/2001/04/xmlenc#sha256'
 TransformSha384 = 'http://www.w3.org/2001/04/xmldsig-more#sha384'
 TransformSha512 = 'http://www.w3.org/2001/04/xmlenc#sha512'
 
-TransformUsageUnknown = ''
+TransformUsageUnknown = {
+
+}
 TransformUsageDSigTransform = [
     TransformEnveloped
 ]
@@ -106,56 +107,29 @@ TransformUsageDigestMethod = {
 }
 TransformUsageSignatureMethod = {
     TransformRsaMd5: {
-        'digest': primitives.hashes.MD5,
-        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
-        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+        'digest': primitives.hashes.MD5, 'method': RSAMethod
     },
     TransformRsaSha1: {
-        'digest': primitives.hashes.SHA1,
-        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
-        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+        'digest': primitives.hashes.SHA1, 'method': RSAMethod
     },
     TransformRsaSha224: {
-        'digest': primitives.hashes.SHA224,
-        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
-        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+        'digest': primitives.hashes.SHA224, 'method': RSAMethod
     },
     TransformRsaSha256: {
-        'digest': primitives.hashes.SHA256,
-        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
-        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+        'digest': primitives.hashes.SHA256, 'method': RSAMethod
     },
     TransformRsaSha384: {
-        'digest': primitives.hashes.SHA384,
-        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
-        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+        'digest': primitives.hashes.SHA384, 'method': RSAMethod
     },
     TransformRsaSha512: {
-        'digest': primitives.hashes.SHA512,
-        'private_key_class': primitives.asymmetric.rsa.RSAPrivateKey,
-        'public_key_class': primitives.asymmetric.rsa.RSAPublicKey
+        'digest': primitives.hashes.SHA512, 'method': RSAMethod
     },
     TransformDsaSha1: {
-        'digest': primitives.hashes.SHA1,
-        'private_key_class': primitives.asymmetric.dsa.DSAPrivateKey,
-        'public_key_class': primitives.asymmetric.dsa.DSAPublicKey
+        'digest': primitives.hashes.SHA1, 'method': DSAMethod
     },
     TransformDsaSha256: {
-        'digest': primitives.hashes.SHA256,
-        'private_key_class': primitives.asymmetric.dsa.DSAPrivateKey,
-        'public_key_class': primitives.asymmetric.dsa.DSAPublicKey
+        'digest': primitives.hashes.SHA256, 'method': DSAMethod
     },
 }
 TransformUsageEncryptionMethod = {}
 TransformUsageAny = {}
-OID_NAMES = {
-    oid.NameOID.COMMON_NAME: 'CN',
-    oid.NameOID.COUNTRY_NAME: 'C',
-    oid.NameOID.DOMAIN_COMPONENT: 'DC',
-    oid.NameOID.EMAIL_ADDRESS: 'E',
-    oid.NameOID.GIVEN_NAME: 'G',
-    oid.NameOID.LOCALITY_NAME: 'L',
-    oid.NameOID.ORGANIZATION_NAME: 'O',
-    oid.NameOID.ORGANIZATIONAL_UNIT_NAME: 'OU',
-    oid.NameOID.SURNAME: 'SN'
-}

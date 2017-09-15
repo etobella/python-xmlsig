@@ -4,11 +4,22 @@
 
 import struct
 import sys
-from uuid import uuid4
 
+from cryptography.x509 import oid
 from lxml import etree
 
-from . import constants
+OID_NAMES = {
+    oid.NameOID.COMMON_NAME: 'CN',
+    oid.NameOID.COUNTRY_NAME: 'C',
+    oid.NameOID.DOMAIN_COMPONENT: 'DC',
+    oid.NameOID.EMAIL_ADDRESS: 'E',
+    oid.NameOID.GIVEN_NAME: 'G',
+    oid.NameOID.LOCALITY_NAME: 'L',
+    oid.NameOID.ORGANIZATION_NAME: 'O',
+    oid.NameOID.ORGANIZATIONAL_UNIT_NAME: 'OU',
+    oid.NameOID.SURNAME: 'SN'
+}
+
 
 USING_PYTHON2 = True if sys.version_info < (3, 0) else False
 b64_intro = 64
@@ -72,8 +83,8 @@ def get_rdns_name(rdns):
         for attr in rdn._attributes:
             if len(name) > 0:
                 name = name + ','
-            if attr.oid in constants.OID_NAMES:
-                name = name + constants.OID_NAMES[attr.oid]
+            if attr.oid in OID_NAMES:
+                name = name + OID_NAMES[attr.oid]
             else:
                 name = name + attr.oid._name
             name = name + '=' + attr.value

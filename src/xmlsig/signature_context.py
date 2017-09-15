@@ -1,14 +1,18 @@
+# -*- coding: utf-8 -*-
+# © 2017 Creu Blanca
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+
 import base64
 import hashlib
 
-from cryptography.hazmat.primitives import serialization, asymmetric
-from cryptography.x509.oid import ExtensionOID
-from cryptography.x509 import load_der_x509_certificate
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization, asymmetric
+from cryptography.x509 import load_der_x509_certificate
+from cryptography.x509.oid import ExtensionOID
 from lxml import etree
 
 from . import constants
-from .utils import long_to_bytes, b64_print, create_node, get_rdns_name
+from .utils import b64_print, get_rdns_name
 
 
 class SignatureContext:
@@ -39,33 +43,17 @@ class SignatureContext:
         key_value = key_info.find('ds:KeyValue', namespaces=constants.NS_MAP)
         if key_value is not None:
             key_value.text = '\n'
-            public_key_class = constants.TransformUsageSignatureMethod[
+            signature = constants.TransformUsageSignatureMethod[
                 signature_method
-            ]['public_key_class']
-            if not isinstance(self.public_key, public_key_class):
+            ]
+            key = self.public_key
+            if self.public_key is None:
+                key = self.private_key.public_key()
+            if not isinstance(
+                    key, signature['method']['public_key_class']
+            ):
                 raise Exception('Key not compatible with signature method')
-            if isinstance(self.public_key, asymmetric.rsa.RSAPublicKey):
-                rsa_key_value = create_node(
-                    'RSAKeyValue', key_value, constants.DSigNs, '\n', '\n'
-                )
-                create_node(
-                    'Modulus',
-                    rsa_key_value,
-                    constants.DSigNs,
-                    tail='\n',
-                    text=b64_print(base64.b64encode(long_to_bytes(
-                        self.public_key.public_numbers().n
-                    )))
-                )
-                create_node(
-                    'Exponent',
-                    rsa_key_value,
-                    constants.DSigNs,
-                    tail='\n',
-                    text=base64.b64encode(long_to_bytes(
-                        self.private_key.public_key().public_numbers().e
-                    ))
-                )
+            signature['method']['key_value'](key_value, key)
         return
 
     def fill_x509_data(self, x509_data):
@@ -176,7 +164,7 @@ class SignatureContext:
         lib.update(object)
         return base64.b64encode(lib.digest())
 
-    def get_uri(self, uri, reference, canonicalization_method):
+    def get_uri(self, uri, reference):
         if uri == "":
             return etree.tostring(reference.getroottree())
         if uri.startswith("#"):
@@ -206,9 +194,7 @@ class SignatureContext:
 
     def calculate_reference(self, canonicalization_method, reference,
                             sign=True):
-        node = self.get_uri(
-            reference.get('URI', ''), reference, canonicalization_method
-        )
+        node = self.get_uri(reference.get('URI', ''), reference)
         transforms = reference.find(
             'ds:Transforms', namespaces=constants.NS_MAP
         )
@@ -234,36 +220,34 @@ class SignatureContext:
         signed_info_xml = node.find('ds:SignedInfo',
                                     namespaces=constants.NS_MAP)
         canonicalization_method = signed_info_xml.find(
-            'ds:CanonicalizationMethod',
-            namespaces=constants.NS_MAP).get('Algorithm')
-        signature_method = signed_info_xml.find('ds:SignatureMethod',
-                                                namespaces=constants.NS_MAP).get(
-            'Algorithm')
+            'ds:CanonicalizationMethod', namespaces=constants.NS_MAP
+        ).get('Algorithm')
+        signature_method = signed_info_xml.find(
+            'ds:SignatureMethod', namespaces=constants.NS_MAP
+        ).get('Algorithm')
         if signature_method not in constants.TransformUsageSignatureMethod:
             raise Exception('Method not accepted')
-        signed_info = self.canonicalization(canonicalization_method,
-                                            signed_info_xml)
-        digest = constants.TransformUsageSignatureMethod[signature_method][
-            'digest']
+        signature = constants.TransformUsageSignatureMethod[signature_method]
+        signed_info = self.canonicalization(
+            canonicalization_method, signed_info_xml
+        )
         if not sign:
             signature_value = node.find('ds:SignatureValue',
                                         namespaces=constants.NS_MAP).text
             public_key = self.get_public_key(node)
-
-            public_key.verify(
-                base64.b64decode(signature_value),
+            signature['method']['verify'](
+                signature_value,
                 signed_info,
-                asymmetric.padding.PKCS1v15(),
-                digest()
+                public_key,
+                signature['digest']
             )
         else:
-            s = base64.b64encode(
-                self.private_key.sign(
-                    signed_info,
-                    asymmetric.padding.PKCS1v15(),
-                    digest()
-                )
-            )
             node.find(
                 'ds:SignatureValue', namespaces=constants.NS_MAP
-            ).text = b64_print(s)
+            ).text = b64_print(base64.b64encode(
+                signature['method']['sign'](
+                    signed_info,
+                    self.private_key,
+                    signature['digest']
+                )
+            ))

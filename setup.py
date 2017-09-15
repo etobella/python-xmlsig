@@ -1,4 +1,3 @@
-import re
 import sys
 
 from setuptools import find_packages, setup
@@ -8,8 +7,6 @@ install_requires = [
     'cryptography'
 ]
 
-async_require = []  # see below
-
 tests_require = [
     'freezegun==0.3.8',
     'mock==2.0.0',
@@ -18,7 +15,6 @@ tests_require = [
     'pytest==3.1.3',
     'requests_mock>=0.7.0',
     'PyOpenSSL',
-    # Linting
     'isort==4.2.5',
     'flake8==3.3.0',
     'flake8-blind-except==0.1.1',
@@ -27,14 +23,9 @@ tests_require = [
 ]
 
 
-if sys.version_info > (3, 4, 2):
-    async_require.append('aiohttp>=1.0')
-    tests_require.append('aioresponses>=0.1.3')
-
-
 setup(
     name='xmlsig',
-    version='0.0.2',
+    version='0.0.3',
     description='Python based XML signature',
     long_description='XML Signature created with cryptography and lxml',
     author="Enric Tobella Alomar",
@@ -44,8 +35,7 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require={
-        'test': tests_require,
-        'async': async_require,
+        'test': tests_require
     },
     entry_points={},
     package_dir={'': 'src'},
