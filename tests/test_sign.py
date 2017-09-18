@@ -1,39 +1,43 @@
 import unittest
-from os import path
-
 from OpenSSL import crypto
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import load_pem_x509_certificate
+from lxml import etree
+from os import path
 
 import xmlsig
 from .base import parse_xml, compare, BASE_DIR
 
 
 class TestSignature(unittest.TestCase):
-    def tst_sign_dsa(self):
-        # https://www.w3.org/TR/2008/REC-xmldsig-core-20080610/#sec-DSA
-        # review I2OP
-        root = parse_xml("sign-dsa-in.xml")
-        sign = root.xpath(
-            '//ds:Signature', namespaces={'ds': xmlsig.constants.DSigNs}
-        )[0]
-        self.assertIsNotNone(sign)
+    def test_hmac(self):
+        template = parse_xml('sign-hmac-in.xml')
 
+        # Create a signature template for RSA-SHA1 enveloped signature.
+        sign = xmlsig.template.create(
+            c14n_method=xmlsig.constants.TransformExclC14N,
+            sign_method=xmlsig.constants.TransformHmacSha1,
+            ns=None
+        )
+
+        assert sign is not None
+
+        # Add the <ds:Signature/> node to the document.
+        template.append(sign)
+
+        # Add the <ds:Reference/> node to the signature template.
+        ref = xmlsig.template.add_reference(sign,
+                                            xmlsig.constants.TransformSha1)
+
+        # Add the enveloped transform descriptor.
+        xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
         ctx = xmlsig.SignatureContext()
-        with open(path.join(BASE_DIR, "dsakey.pem"), "rb") as key_file:
-            ctx.private_key = serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
-            )
-        ctx.key_name = 'dsakey.pem'
-        ctx.public_key = ctx.private_key.public_key()
-        self.assertEqual("dsakey.pem", ctx.key_name)
-
+        ctx.private_key = b'secret'
+        ctx.public_key = b'secret'
         ctx.sign(sign)
-        #ctx.verify(sign)
-        compare('sign-dsa-out.xml', root)
+        ctx.verify(sign)
+        compare('sign-hmac-out.xml', template)
 
     def test_sign_generated_template_pem_with_x509(self):
         """

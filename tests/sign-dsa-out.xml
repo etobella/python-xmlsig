@@ -4,7 +4,7 @@
 <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
 <SignedInfo>
 <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
-<SignatureMethod Algorithm="http://www.w3.org/2009/xmldsig11#dsa-sha256"/>
+<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#dsa-sha1"/>
 <Reference URI="">
 <Transforms>
 <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
@@ -13,7 +13,7 @@
 <DigestValue>ar01tgKya9a8sT7Px/K+h7i4+o4=</DigestValue>
 </Reference>
 </SignedInfo>
-<SignatureValue>qYLW0X3eifQePhA2uZHVSyUh8x/Bp+2T/pm+Ddulr9UcH8Lolp4Fzw==</SignatureValue>
+<SignatureValue>Tq29gw/jH0QCdbpFJmdXvJD6PqNXnc1OF072bLzQnSz7F4Slsqep0A==</SignatureValue>
 <KeyInfo>
 <KeyValue>
 <DSAKeyValue>

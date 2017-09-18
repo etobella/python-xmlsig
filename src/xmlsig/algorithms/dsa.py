@@ -2,50 +2,55 @@
 # © 2017 Creu Blanca
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from cryptography.hazmat import primitives
-from ..utils import create_node, long_to_bytes, b64_print
-from ..ns import DSigNs
+import array
 import base64
+import struct
+from cryptography.hazmat import primitives
+
+from ..ns import DSigNs
+from ..utils import create_node, long_to_bytes, b64_print, USING_PYTHON2
 
 
+def i2osp(x, x_len):
+    if x >= pow(256, x_len):
+        raise ValueError("integer too large")
+    digits = []
+    while x:
+        digits.append(int(x % 256))
+        x //= 256
+    for i in range(x_len - len(digits)):
+        digits.append(0)
+    return digits
 
 
-def i2osp(x, xLen):
-        if x >= 256^xLen:
-            raise ValueError("integer too large")
-        digits = []
-
-        while x:
-            digits.append(int(x % 256))
-            x //= 256
-        for i in range(xLen - len(digits)):
-            digits.append(0)
-        return digits[::-1]
-
-def os2ip(X):
-        xLen = len(X)
-        X = X[::-1]
-        x = 0
-        for i in range(xLen):
-            x += X[i] * 256^i
-        return x
-
-
+def os2ip(arr):
+    x_len = len(arr)
+    x = 0
+    for i in range(x_len):
+        if USING_PYTHON2:
+            val = struct.unpack('B', arr[i])[0]
+        else:
+            val = arr[i]
+        x = x + (val * pow(256, x_len - i - 1))
+    return x
 
 
 def dsa_sign(data, private_key, digest):
-    r,s = primitives.asymmetric.utils.decode_dss_signature(private_key.sign(
+    signature = private_key.sign(
         data,
         digest()
-    ))
-    print i2osp(r, 20)
-    print i2osp(2, 20)
-    return i2osp(r, 20) + i2osp(s, 20)
+    )
+    r, s = primitives.asymmetric.utils.decode_dss_signature(signature)
+    print(base64.b64encode(bytearray(long_to_bytes(r, 20) + long_to_bytes(s, 20))))
+    return bytearray(long_to_bytes(r, 32) + long_to_bytes(s, 32))
 
 
 def dsa_verify(signature_value, data, public_key, digest):
+    decoded = base64.b64decode(signature_value)
+    r = os2ip(decoded[:20])
+    s = os2ip(decoded[20:])
     public_key.verify(
-        base64.b64decode(signature_value),
+        primitives.asymmetric.utils.encode_dss_signature(r, s),
         data,
         digest()
     )

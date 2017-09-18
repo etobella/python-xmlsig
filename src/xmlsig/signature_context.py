@@ -29,7 +29,8 @@ class SignatureContext:
                                             namespaces=constants.NS_MAP).get(
             'Algorithm')
         key_info = node.find('ds:KeyInfo', namespaces=constants.NS_MAP)
-        self.fill_key_info(key_info, signature_method)
+        if key_info is not None:
+            self.fill_key_info(key_info, signature_method)
         self.fill_signed_info(signed_info)
         self.calculate_signature(node)
 
@@ -178,7 +179,7 @@ class SignatureContext:
                         uri, len(results)))
             elif len(results) == 1:
                 return etree.tostring(results[0])
-        raise Exception('URI cannot be readed')
+        raise Exception('URI "' + uri + '" cannot be readed')
 
     def get_public_key(self, sign):
         x509_certificate = sign.find(

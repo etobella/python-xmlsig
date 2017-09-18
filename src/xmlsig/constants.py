@@ -6,9 +6,8 @@ from cryptography.hazmat import primitives
 
 from .algorithms.dsa import DSAMethod
 from .algorithms.rsa import RSAMethod
+from .algorithms.hmac import HMACMethod
 from .ns import DSigNs
-
-# Namespaces
 
 
 NS_MAP = {'ds': DSigNs}
@@ -19,7 +18,7 @@ TransformInclC14N11 = ''
 TransformInclC14N11WithComments = ''
 TransformExclC14N = 'http://www.w3.org/2001/10/xml-exc-c14n#'
 TransformExclC14NWithComments = 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments'
-TransformEnveloped = u'http://www.w3.org/2000/09/xmldsig#enveloped-signature'
+TransformEnveloped = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature'
 TransformXPath = 'http://www.w3.org/TR/1999/REC-xpath-19991116'
 TransformXPath2 = ''
 TransformXPointer = ''
@@ -43,7 +42,7 @@ TransformEcdsaSha384 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha384'
 TransformEcdsaSha512 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512'
 TransformHmacMd5 = ''
 TransformHmacRipemd160 = ''
-TransformHmacSha1 = ''
+TransformHmacSha1 = 'http://www.w3.org/2000/09/xmldsig#hmac-sha1'
 TransformHmacSha224 = ''
 TransformHmacSha256 = ''
 TransformHmacSha384 = ''
@@ -124,12 +123,9 @@ TransformUsageSignatureMethod = {
     TransformRsaSha512: {
         'digest': primitives.hashes.SHA512, 'method': RSAMethod
     },
-    TransformDsaSha1: {
-        'digest': primitives.hashes.SHA1, 'method': DSAMethod
-    },
-    TransformDsaSha256: {
-        'digest': primitives.hashes.SHA256, 'method': DSAMethod
-    },
+    TransformHmacSha1: {
+'digest': primitives.hashes.SHA1, 'method': HMACMethod
+    }
 }
 TransformUsageEncryptionMethod = {}
 TransformUsageAny = {}
