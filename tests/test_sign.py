@@ -5,10 +5,9 @@ from OpenSSL import crypto
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import load_pem_x509_certificate
-from lxml import etree
 
 import xmlsig
-from base import parse_xml, compare, BASE_DIR
+from .base import parse_xml, compare, BASE_DIR
 
 
 class TestSignature(unittest.TestCase):
