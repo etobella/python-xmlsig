@@ -1,41 +1,17 @@
 import unittest
+from os import path
+
 from OpenSSL import crypto
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization, asymmetric
+from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import load_pem_x509_certificate
 from lxml import etree
-from os import path
 
 import xmlsig
 from base import parse_xml, compare, BASE_DIR
 
 
 class TestSignature(unittest.TestCase):
-
-    def test_dsa(self):
-        root = parse_xml('sign-dsa-in.xml')
-
-        # Create a signature template for RSA-SHA1 enveloped signature.
-        sign = root.xpath(
-            '//ds:Signature', namespaces={'ds': xmlsig.constants.DSigNs}
-        )[0]
-        self.assertIsNotNone(sign)
-        with open(path.join(BASE_DIR, "dsacred.p12"), "rb") as key_file:
-            key = crypto.load_pkcs12(
-                key_file.read()
-            )
-
-        assert key is not None
-
-        # Set the key on the context.
-        ctx = xmlsig.SignatureContext()
-        ctx.x509 = key.get_certificate().to_cryptography()
-        ctx.public_key = key.get_certificate().to_cryptography().public_key()
-        ctx.private_key = key.get_privatekey().to_cryptography_key()
-        ctx.sign(sign)
-        print(etree.tostring(root))
-
-
     def test_hmac(self):
         template = parse_xml('sign-hmac-in.xml')
 
@@ -58,8 +34,8 @@ class TestSignature(unittest.TestCase):
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
 
         ctx = xmlsig.SignatureContext()
-        ctx.private_key = "secret"
-        ctx.public_key = "secret"
+        ctx.private_key = b"secret"
+        ctx.public_key = b"secret"
 
         ctx.sign(sign)
         ctx.verify(sign)

@@ -48,6 +48,12 @@ Usage
 
 To have more examples, look at the source code of the testings
 
+Functionality
+=============
+
+Signature is only valid using RSA and HMAC validation.
+ECDSA and DSA is still being implemented
+
 License
 =======
 

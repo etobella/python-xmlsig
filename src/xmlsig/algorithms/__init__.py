@@ -1,2 +1,2 @@
-from . import dsa
-from . import rsa
+from .rsa import RSAAlgorithm
+from .hmac import HMACAlgorithm

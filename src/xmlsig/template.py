@@ -20,7 +20,7 @@ def add_key_value(node):
     return create_node('KeyValue', node, DSigNs, tail='\n')
 
 
-def add_reference(node, digest_method, id=False, uri=False, type=False):
+def add_reference(node, digest_method, name=False, uri=False, uri_type=False):
     reference = create_node(
         'Reference',
         node.find('{' + DSigNs + '}SignedInfo'),
@@ -28,12 +28,12 @@ def add_reference(node, digest_method, id=False, uri=False, type=False):
         tail='\n',
         text='\n'
     )
-    if id:
-        reference.set(ID_ATTR, id)
+    if name:
+        reference.set(ID_ATTR, name)
     if uri:
         reference.set('URI', uri)
-    if type:
-        reference.set('Type', type)
+    if uri_type:
+        reference.set('Type', uri_type)
     digest_method_node = create_node(
         'DigestMethod', reference, DSigNs, tail='\n'
     )
@@ -79,14 +79,14 @@ def create(c14n_method=False, sign_method=False, name=False, ns='ds'):
     return node
 
 
-def ensure_key_info(node, id=False):
+def ensure_key_info(node, name=False):
     if node.find('{' + DSigNs + '}KeyInfo'):
         key_info = node.find('{' + DSigNs + '}KeyInfo')
     else:
         key_info = create_node('KeyInfo', ns=DSigNs, tail='\n')
         node.insert(2, key_info)
-    if id:
-        key_info.set(ID_ATTR, id)
+    if name:
+        key_info.set(ID_ATTR, name)
     return key_info
 
 

@@ -2,24 +2,22 @@
 # © 2017 Creu Blanca
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from cryptography.hazmat import primitives
+from cryptography.hazmat.primitives import hashes
 
-from .algorithms.dsa import DSAMethod
-from .algorithms.ecdsa import ECDSAMethod
-from .algorithms.hmac import HMACMethod
-from .algorithms.rsa import RSAMethod
+from .algorithms import RSAAlgorithm, HMACAlgorithm
 from .ns import DSigNs, DSigNs11
 
 NS_MAP = {'ds': DSigNs, 'ds11': DSigNs11}
 ID_ATTR = 'ID'
 
-
 TransformInclC14N = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315'
-TransformInclC14NWithComments = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments'
+TransformInclC14NWithComments = 'http://www.w3.org/TR/2001/' \
+                                'REC-xml-c14n-20010315#WithComments'
 TransformInclC14N11 = ''
 TransformInclC14N11WithComments = ''
 TransformExclC14N = 'http://www.w3.org/2001/10/xml-exc-c14n#'
-TransformExclC14NWithComments = 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments'
+TransformExclC14NWithComments = 'http://www.w3.org/2001/10/xml-exc-c14n#' \
+                                'WithComments'
 TransformEnveloped = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature'
 TransformXPath = 'http://www.w3.org/TR/1999/REC-xpath-19991116'
 TransformXPath2 = ''
@@ -42,13 +40,13 @@ TransformEcdsaSha224 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha224'
 TransformEcdsaSha256 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256'
 TransformEcdsaSha384 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha384'
 TransformEcdsaSha512 = 'http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512'
-TransformHmacMd5 = ''
-TransformHmacRipemd160 = ''
+TransformHmacRipemd160 = 'http://www.w3.org/2001/04/' \
+                         'xmldsig-more#hmac-ripemd160'
 TransformHmacSha1 = 'http://www.w3.org/2000/09/xmldsig#hmac-sha1'
-TransformHmacSha224 = ''
-TransformHmacSha256 = ''
-TransformHmacSha384 = ''
-TransformHmacSha512 = ''
+TransformHmacSha224 = 'http://www.w3.org/2001/04/xmldsig-more#hmac-sha224'
+TransformHmacSha256 = 'http://www.w3.org/2001/04/xmldsig-more#hmac-sha256'
+TransformHmacSha384 = 'http://www.w3.org/2001/04/xmldsig-more#hmac-sha384'
+TransformHmacSha512 = 'http://www.w3.org/2001/04/xmldsig-more#hmac-sha512'
 TransformRsaMd5 = 'http://www.w3.org/2001/04/xmldsig-more#rsa-md5'
 TransformRsaRipemd160 = 'http://www.w3.org/2001/04/xmldsig-more#rsa-ripemd160'
 TransformRsaSha1 = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
@@ -106,49 +104,42 @@ TransformUsageDigestMethod = {
     TransformSha512: 'sha512',
     TransformRipemd160: 'ripemd160',
 }
+
 TransformUsageSignatureMethod = {
     TransformRsaMd5: {
-        'digest': primitives.hashes.MD5, 'method': RSAMethod
+        'digest': hashes.MD5, 'method': RSAAlgorithm
     },
     TransformRsaSha1: {
-        'digest': primitives.hashes.SHA1, 'method': RSAMethod
+        'digest': hashes.SHA1, 'method': RSAAlgorithm
     },
     TransformRsaSha224: {
-        'digest': primitives.hashes.SHA224, 'method': RSAMethod
+        'digest': hashes.SHA224, 'method': RSAAlgorithm
     },
     TransformRsaSha256: {
-        'digest': primitives.hashes.SHA256, 'method': RSAMethod
+        'digest': hashes.SHA256, 'method': RSAAlgorithm
     },
     TransformRsaSha384: {
-        'digest': primitives.hashes.SHA384, 'method': RSAMethod
+        'digest': hashes.SHA384, 'method': RSAAlgorithm
     },
     TransformRsaSha512: {
-        'digest': primitives.hashes.SHA512, 'method': RSAMethod
+        'digest': hashes.SHA512, 'method': RSAAlgorithm
     },
     TransformHmacSha1: {
-        'digest': primitives.hashes.SHA1, 'method': HMACMethod
+        'digest': hashes.SHA1, 'method': HMACAlgorithm
     },
     TransformHmacSha224: {
-        'digest': primitives.hashes.SHA256, 'method': HMACMethod
+        'digest': hashes.SHA256, 'method': HMACAlgorithm
     },
     TransformHmacSha256: {
-        'digest': primitives.hashes.SHA256, 'method': HMACMethod
+        'digest': hashes.SHA256, 'method': HMACAlgorithm
     },
     TransformHmacSha384: {
-        'digest': primitives.hashes.SHA384, 'method': HMACMethod
+        'digest': hashes.SHA384, 'method': HMACAlgorithm
     },
     TransformHmacSha512: {
-        'digest': primitives.hashes.SHA512, 'method': HMACMethod
-    },
-    TransformDsaSha1: {
-        'digest': primitives.hashes.SHA1, 'method': DSAMethod
-    },
-    TransformEcdsaSha1: {
-        'digest': primitives.hashes.SHA1, 'method': ECDSAMethod
-    },
-    TransformEcdsaSha256: {
-        'digest': primitives.hashes.SHA256, 'method': ECDSAMethod
+        'digest': hashes.SHA512, 'method': HMACAlgorithm
     }
 }
+
 TransformUsageEncryptionMethod = {}
 TransformUsageAny = {}

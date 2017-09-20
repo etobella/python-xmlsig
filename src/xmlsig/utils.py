@@ -20,12 +20,16 @@ OID_NAMES = {
     oid.NameOID.SURNAME: 'SN'
 }
 
-
 USING_PYTHON2 = True if sys.version_info < (3, 0) else False
 b64_intro = 64
 
 
 def b64_print(s):
+    """
+    Prints a string with spaces at every b64_intro characters
+    :param s: String to print
+    :return: String
+    """
     if USING_PYTHON2:
         string = str(s)
     else:
@@ -67,6 +71,15 @@ def long_to_bytes(n, blocksize=0):
 
 
 def create_node(name, parent=None, ns='', tail=False, text=False):
+    """
+    Creates a new node
+    :param name: Node name
+    :param parent: Node parent
+    :param ns: Namespace to use
+    :param tail: Tail to add
+    :param text: Text of the node
+    :return: New node
+    """
     node = etree.Element(etree.QName(ns, name))
     if parent is not None:
         parent.append(node)
@@ -78,6 +91,12 @@ def create_node(name, parent=None, ns='', tail=False, text=False):
 
 
 def get_rdns_name(rdns):
+    """
+    Gets the rdns String name
+    :param rdns: RDNS object
+    :type rdns: cryptography.x509.RelativeDistinguishedName
+    :return: RDNS name
+    """
     name = ''
     for rdn in rdns:
         for attr in rdn._attributes:
