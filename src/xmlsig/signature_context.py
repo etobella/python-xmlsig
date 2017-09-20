@@ -4,7 +4,6 @@
 
 import base64
 import hashlib
-
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization, asymmetric
 from cryptography.x509 import load_der_x509_certificate
@@ -254,3 +253,15 @@ class SignatureContext:
                     signature['digest']
                 )
             ))
+
+    def load_pcks12(self, key):
+        '''
+        This function fills the context public_key, private_key and x509 from 
+        PKCS12 Object
+        :param key: the PKCS12 Object
+        :type key: OpenSSL.crypto.PKCS12
+        :return: None
+        '''
+        self.x509 = key.get_certificate().to_cryptography()
+        self.public_key = key.get_certificate().to_cryptography().public_key()
+        self.private_key = key.get_privatekey().to_cryptography_key()

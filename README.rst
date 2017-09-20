@@ -5,7 +5,7 @@ XmlSIG: Python native XML Signature
 A python native library that signs and verifies xml signatures
 
 Highlights:
- * Build on top of lxml and PyOpenSSL
+ * Build on top of lxml and cryptography
 
 
 .. start-no-pypi
@@ -30,3 +30,30 @@ Installation
 .. code-block:: bash
 
     pip install xmlsig
+
+Usage
+=====
+
+.. code::
+
+  import xmlsig
+
+  sign = xmlsig.template.create(c14n_method=xmlsig.constants.TransformExclC14N, sign_method=xmlsig.constants.TransformRsaSha1)
+  ref = xmlsig.template.add_reference(sign, xmlsig.constants.TransformSha1)
+  xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
+
+  ctx = xmlsig.SignatureContext()
+
+
+
+To have more examples, look at the source code of the testings
+
+License
+=======
+
+This library is published under the BSD license.
+
+Contributors
+============
+
+* Enric Tobella <etobella@creublanca.es>
