@@ -5,12 +5,14 @@
 from cryptography.hazmat import primitives
 
 from .algorithms.dsa import DSAMethod
-from .algorithms.rsa import RSAMethod
+from .algorithms.ecdsa import ECDSAMethod
 from .algorithms.hmac import HMACMethod
-from .ns import DSigNs
+from .algorithms.rsa import RSAMethod
+from .ns import DSigNs, DSigNs11
 
+NS_MAP = {'ds': DSigNs, 'ds11': DSigNs11}
 ID_ATTR = 'ID'
-NS_MAP = {'ds': DSigNs}
+
 
 TransformInclC14N = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315'
 TransformInclC14NWithComments = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments'
@@ -124,7 +126,28 @@ TransformUsageSignatureMethod = {
         'digest': primitives.hashes.SHA512, 'method': RSAMethod
     },
     TransformHmacSha1: {
-'digest': primitives.hashes.SHA1, 'method': HMACMethod
+        'digest': primitives.hashes.SHA1, 'method': HMACMethod
+    },
+    TransformHmacSha224: {
+        'digest': primitives.hashes.SHA256, 'method': HMACMethod
+    },
+    TransformHmacSha256: {
+        'digest': primitives.hashes.SHA256, 'method': HMACMethod
+    },
+    TransformHmacSha384: {
+        'digest': primitives.hashes.SHA384, 'method': HMACMethod
+    },
+    TransformHmacSha512: {
+        'digest': primitives.hashes.SHA512, 'method': HMACMethod
+    },
+    TransformDsaSha1: {
+        'digest': primitives.hashes.SHA1, 'method': DSAMethod
+    },
+    TransformEcdsaSha1: {
+        'digest': primitives.hashes.SHA1, 'method': ECDSAMethod
+    },
+    TransformEcdsaSha256: {
+        'digest': primitives.hashes.SHA256, 'method': ECDSAMethod
     }
 }
 TransformUsageEncryptionMethod = {}

@@ -18,6 +18,5 @@
 <X509Data>
 <X509Certificate/>
 </X509Data>
-<KeyValue/>
 </KeyInfo>
 </Signature></Envelope>

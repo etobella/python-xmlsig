@@ -30,7 +30,7 @@ setup(
     long_description='XML Signature created with cryptography and lxml',
     author="Enric Tobella Alomar",
     author_email="etobella@creublanca.es",
-    url='http://docs.python-src.org',
+    url='http://github.com/etobella/python-xmlsig',
 
     install_requires=install_requires,
     tests_require=tests_require,
@@ -42,7 +42,7 @@ setup(
     packages=find_packages('src'),
     include_package_data=True,
 
-    license='AGPL',
+    license='BSD',
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
@@ -53,7 +53,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
     zip_safe=False,

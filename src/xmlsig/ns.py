@@ -3,6 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 DSigNs = 'http://www.w3.org/2000/09/xmldsig#'
+DSigNs11 = 'http://www.w3.org/2009/xmldsig11#'
 EncNs = 'http://www.w3.org/2001/04/xmlenc#'
 XPathNs = 'http://www.w3.org/TR/1999/REC-xpath-19991116'
 XPath2Ns = 'http://www.w3.org/2002/06/xmldsig-filter2'

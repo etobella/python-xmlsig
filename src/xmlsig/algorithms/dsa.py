@@ -42,7 +42,7 @@ def dsa_sign(data, private_key, digest):
     )
     r, s = primitives.asymmetric.utils.decode_dss_signature(signature)
     print(base64.b64encode(bytearray(long_to_bytes(r, 20) + long_to_bytes(s, 20))))
-    return bytearray(long_to_bytes(r, 32) + long_to_bytes(s, 32))
+    return bytearray(i2osp(r, 20) + i2osp(s,20))
 
 
 def dsa_verify(signature_value, data, public_key, digest):
