@@ -9,7 +9,7 @@ from .algorithms.rsa import RSAMethod
 from .algorithms.hmac import HMACMethod
 from .ns import DSigNs
 
-
+ID_ATTR = 'ID'
 NS_MAP = {'ds': DSigNs}
 
 TransformInclC14N = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315'

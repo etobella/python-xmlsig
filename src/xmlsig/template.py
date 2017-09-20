@@ -4,7 +4,7 @@
 
 from lxml import etree
 
-from .constants import DSigNs, NS_MAP
+from .constants import DSigNs, NS_MAP, ID_ATTR
 from .utils import create_node
 
 
@@ -29,7 +29,7 @@ def add_reference(node, digest_method, id=False, uri=False, type=False):
         text='\n'
     )
     if id:
-        reference.set('Id', id)
+        reference.set(ID_ATTR, id)
     if uri:
         reference.set('URI', uri)
     if type:
@@ -65,7 +65,7 @@ def create(c14n_method=False, sign_method=False, name=False, ns='ds'):
     node = etree.Element(etree.QName(DSigNs, 'Signature'), nsmap={ns: DSigNs})
     node.text = '\n'
     if name:
-        node.set('Id', name)
+        node.set(ID_ATTR, name)
     signed_info = create_node('SignedInfo', node, DSigNs, tail='\n', text='\n')
     canonicalization = create_node(
         'CanonicalizationMethod', signed_info, DSigNs, tail='\n'
@@ -86,7 +86,7 @@ def ensure_key_info(node, id=False):
         key_info = create_node('KeyInfo', ns=DSigNs, tail='\n')
         node.insert(2, key_info)
     if id:
-        key_info.set('Id', id)
+        key_info.set(ID_ATTR, id)
     return key_info
 
 

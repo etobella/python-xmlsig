@@ -169,7 +169,9 @@ class SignatureContext:
         if uri == "":
             return etree.tostring(reference.getroottree())
         if uri.startswith("#"):
-            xpath_query = "//*[@*[local-name() = '{}']=$uri]".format('ID')
+            xpath_query = "//*[@*[local-name() = '{}']=$uri]".format(
+                constants.ID_ATTR
+            )
             results = reference.getroottree().xpath(
                 xpath_query, uri=uri.lstrip("#")
             )
