@@ -4,7 +4,8 @@ from setuptools import find_packages, setup
 
 install_requires = [
     'lxml>=3.0.0,<=3.8.0',
-    'cryptography'
+    'cryptography',
+    'asn1crypto'
 ]
 
 tests_require = [

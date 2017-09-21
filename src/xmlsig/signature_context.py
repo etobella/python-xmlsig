@@ -5,9 +5,7 @@
 import base64
 import hashlib
 
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.x509 import load_der_x509_certificate
 from cryptography.x509.oid import ExtensionOID
 from lxml import etree
 
@@ -15,7 +13,7 @@ from . import constants
 from .utils import b64_print, get_rdns_name
 
 
-class SignatureContext:
+class SignatureContext(object):
     """
     Signature context is used to sign and verify Signature nodes with keys
     """
@@ -186,7 +184,8 @@ class SignatureContext:
                 )
             )
             root.remove(signature)
-            return etree.tostring(root)
+            return self.canonicalization(
+                    constants.TransformInclC14N, root)
         raise Exception('Method not found')
 
     def canonicalization(self, method, node):
@@ -233,40 +232,31 @@ class SignatureContext:
         :return: Element of the URI in a String
         """
         if uri == "":
-            return etree.tostring(reference.getroottree())
+            return self.canonicalization(
+                constants.TransformInclC14N, reference.getroottree()
+            )
         if uri.startswith("#"):
-            xpath_query = "//*[@*[local-name() = '{}']=$uri]".format(
-                constants.ID_ATTR
-            )
-            results = reference.getroottree().xpath(
-                xpath_query, uri=uri.lstrip("#")
-            )
+            query = "//*[@*[local-name() = '{}' ]=$uri]"
+            node = reference.getroottree()
+            results = self.check_uri_attr(node, query, uri, constants.ID_ATTR)
+            if len(results) == 0:
+                results = self.check_uri_attr(node, query, uri, 'ID')
+            if len(results) == 0:
+                results = self.check_uri_attr(node, query, uri, 'Id')
+            if len(results) == 0:
+                results = self.check_uri_attr(node, query, uri, 'id')
             if len(results) > 1:
                 raise Exception(
                     "Ambiguous reference URI {} resolved to {} nodes".format(
                         uri, len(results)))
             elif len(results) == 1:
-                return etree.tostring(results[0])
+                return self.canonicalization(
+                    constants.TransformInclC14N, results[0]
+                )
         raise Exception('URI "' + uri + '" cannot be readed')
 
-    def get_public_key(self, sign):
-        """
-        Get the public key if its defined in X509Certificate node. Otherwise,
-        take self.public_key element
-        :param sign: Signature node
-        :type sign: lxml.etree.Element
-        :return: Public key to use
-        """
-        x509_certificate = sign.find(
-            'ds:KeyInfo/ds:X509Data/ds:X509Certificate',
-            namespaces={'ds': constants.DSigNs}
-        )
-        if x509_certificate is not None:
-            return load_der_x509_certificate(
-                base64.b64decode(x509_certificate.text),
-                default_backend()
-            ).public_key()
-        return self.public_key
+    def check_uri_attr(self, node, xpath_query, uri, attr):
+        return node.xpath(xpath_query.format(attr), uri=uri.lstrip("#"))
 
     def calculate_reference(self, reference, sign=True):
         """
@@ -296,6 +286,7 @@ class SignatureContext:
             return digest_value.decode() == reference.find(
                 'ds:DigestValue', namespaces=constants.NS_MAP
             ).text
+
         reference.find(
             'ds:DigestValue', namespaces=constants.NS_MAP
         ).text = digest_value
@@ -326,7 +317,7 @@ class SignatureContext:
         if not sign:
             signature_value = node.find('ds:SignatureValue',
                                         namespaces=constants.NS_MAP).text
-            public_key = self.get_public_key(node)
+            public_key = signature['method'].get_public_key(node, self)
             signature['method'].verify(
                 signature_value,
                 signed_info,

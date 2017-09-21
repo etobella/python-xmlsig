@@ -5,10 +5,9 @@
 from cryptography.hazmat.primitives import hashes
 
 from .algorithms import RSAAlgorithm, HMACAlgorithm
-from .ns import DSigNs, DSigNs11
+from .ns import DSigNs, DSigNs11, NS_MAP
 
-NS_MAP = {'ds': DSigNs, 'ds11': DSigNs11}
-ID_ATTR = 'ID'
+ID_ATTR = 'Id'
 
 TransformInclC14N = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315'
 TransformInclC14NWithComments = 'http://www.w3.org/TR/2001/' \
