@@ -3,7 +3,7 @@
 
 from cryptography.hazmat.primitives import hashes
 
-from .algorithms import HMACAlgorithm, RSAAlgorithm
+from .algorithms import DSAAlgorithm, HMACAlgorithm, RSAAlgorithm
 from .ns import NS_MAP  # noqa:F401
 from .ns import DSignNsMore, DSigNs, DSigNs11, EncNs
 
@@ -102,6 +102,8 @@ TransformUsageSignatureMethod = {
     TransformHmacSha256: {"digest": hashes.SHA256, "method": HMACAlgorithm},
     TransformHmacSha384: {"digest": hashes.SHA384, "method": HMACAlgorithm},
     TransformHmacSha512: {"digest": hashes.SHA512, "method": HMACAlgorithm},
+    TransformDsaSha1: {"digest": hashes.SHA1, "method": DSAAlgorithm},
+    TransformDsaSha256: {"digest": hashes.SHA256, "method": DSAAlgorithm},
 }
 
 TransformUsageEncryptionMethod = {}
