@@ -351,7 +351,7 @@ class SignatureContext(object):
                 )
             ))
 
-    def load_pcks12(self, key):
+    def load_pkcs12(self, key):
         """
         This function fills the context public_key, private_key and x509 from 
         PKCS12 Object

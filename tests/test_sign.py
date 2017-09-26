@@ -45,19 +45,11 @@ class TestSignature(unittest.TestCase):
         xmlsig.template.x509_data_add_certificate(x509_data)
         # Create a digital signature context (no key manager is needed).
         # Load private key (assuming that there is no password).
-        with open(path.join(BASE_DIR, "data/keyStore.p12"), "rb") as key_file:
-            key = crypto.load_pkcs12(
-                key_file.read()
-            )
-
-        assert key is not None
-
         # Set the key on the context.
         ctx = xmlsig.SignatureContext()
-        ctx.x509 = key.get_certificate().to_cryptography()
-        ctx.public_key = key.get_certificate().to_cryptography().public_key()
-        ctx.private_key = key.get_privatekey().to_cryptography_key()
 
+        with open(path.join(BASE_DIR, "data/keyStore.p12"), "rb") as key_file:
+            ctx.load_pkcs12(crypto.load_pkcs12(key_file.read()))
         # Sign the template.
         ctx.sign(sign)
         ctx.verify(sign)
