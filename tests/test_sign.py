@@ -102,6 +102,7 @@ class TestSignature(unittest.TestCase):
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
         ki = xmlsig.template.ensure_key_info(sign)
         xmlsig.template.add_key_name(ki)
+        xmlsig.template.add_key_value(ki)
 
         ctx = xmlsig.SignatureContext()
         with open(path.join(BASE_DIR, "data/rsakey.pem"), "rb") as key_file:
@@ -118,7 +119,6 @@ class TestSignature(unittest.TestCase):
                 cert_file.read(),
                 default_backend()
             )
-            #ctx.public_key = x509.public_key()
         ctx.verify(sign)
         ctx.public_key = x509.public_key()
         ctx.verify(sign)
