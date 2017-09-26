@@ -1,30 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-XML Security Library example: Signed XML doc file (sign5 example).
--->
 <Envelope xmlns="urn:envelope">
-  <Data>
-	Hello, World!
-  </Data>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+  <Data ID="D1">HjY8ilZAIEM2tBbPn5mYO1ieIX4=</Data>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="S1">
 <SignedInfo>
 <CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
-<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
-<Reference>
+<SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+<Reference Id="R1" Type="Type">
 <Transforms>
 <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
 </Transforms>
 <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
-<DigestValue>HjY8ilZAIEM2tBbPn5mYO1ieIX4=</DigestValue>
+<DigestValue>Xip8HLjwAy+BG5HXnmv2E5ev9OA=</DigestValue>
 </Reference>
 </SignedInfo>
-<SignatureValue>SIaj/6KY3C1SmDXU2++Gm31U1xTadFp04WhBgfsJFbxrL+q7GKSKN9kfQ+UpN9+i
-D5fWmuavXEHe4Gw6RMaMEkq2URQo7F68+d5J/ajq8/l4n+xE6/reGScVwT6L4dEP
-XXVJcAi2ZnQ3O7GTNvNGCPibL9mUcyCWBFZ92Uemtc/vJFCQ7ZyKMdMfACgxOwyN
-T/9971oog241/2doudhonc0I/3mgPYWkZdX6yvr62mEjnG+oUZkhWYJ4ewZJ4hM4
-JjbFqZO+OEzDRSbw3DkmuBA/mtlx+3t13SESfEub5hqoMdVmtth/eTb64dsPdl9r
-3k1ACVX9f8aHfQQdJOmLFQ==</SignatureValue>
-<KeyInfo>
+<SignatureValue>L/uM6kbHlgRr09RRH452+TT/RO3EPtONXFf/gDXBAILnqzGiJ38yK3R1t7FUO0LP
+YQNBT0mgesBWajm7DTOWY5c3zyS8eOeCU7PclVdYpuxdbIHiUVkRveALUda2Ah+K
+nBInCKMsyJ5H0UXEc8NQVU4EtCX8UxC3I0uT3Fi+pMHt5N85YbM8mCZlg8eqFW7h
+Is/W/HJaqV36MUIJ/Dx0wlauwa9+ZTcxEqAAau54q5k4L8iWrzXrluM34esXuHfF
+FghH31ewOXorKLptq2mAKxnaGqZMzEROAS9LN7GpJw7CTphm7Yf8o0ZtGB3+nI6h
+3hIs/y0QA1mYY2W5lD5IYQ==</SignatureValue>
+<KeyInfo Id="KI1">
 <X509Data>
 <X509SubjectName>C=US,stateOrProvinceName=California,O=XML Security Library (http://www.aleksey.com/xmlsec),OU=Examples RSA Certificate,CN=Aleksey Sanin,E=xmlsec@aleksey.com</X509SubjectName>
 <X509Certificate>MIIE3zCCBEigAwIBAgIBBTANBgkqhkiG9w0BAQQFADCByzELMAkGA1UEBhMCVVMx
@@ -71,5 +65,6 @@ Oo5CFCBhEh/j/AWxBdVlww==</Modulus>
 <Exponent>AQAB</Exponent>
 </RSAKeyValue>
 </KeyValue>
+<KeyName>rsakey.pem</KeyName>
 </KeyInfo>
 </Signature></Envelope>

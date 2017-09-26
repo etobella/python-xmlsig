@@ -202,19 +202,22 @@ class TestSignature(unittest.TestCase):
         compare("data/sign4-out.xml", root)
 
     def test_sign_case5(self):
-        """Should sign a file using a dynamicaly created template, key from PEM file and an X509 certificate."""
+        """Should sign a file using a dynamicaly created template, key from 
+        PEM file and an X509 certificate."""
         root = parse_xml("data/sign5-in.xml")
         sign = xmlsig.template.create(
             c14n_method=xmlsig.constants.TransformExclC14N,
-            sign_method=xmlsig.constants.TransformRsaSha1,
-            ns=None
+            sign_method=xmlsig.constants.TransformRsaSha256,
+            ns=None,
+            name="S1"
         )
         self.assertIsNotNone(sign)
         root.append(sign)
         ref = xmlsig.template.add_reference(
-            sign, xmlsig.constants.TransformSha1
+            sign, xmlsig.constants.TransformSha1, name="R1", uri_type="Type"
         )
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
+        xmlsig.template.ensure_key_info(sign, name="KI1")
         ki = xmlsig.template.ensure_key_info(sign)
         x509 = xmlsig.template.add_x509_data(ki)
         xmlsig.template.x509_data_add_subject_name(x509)
@@ -225,6 +228,7 @@ class TestSignature(unittest.TestCase):
         xmlsig.template.x509_issuer_serial_add_serial_number(
             x509_issuer_serial)
         xmlsig.template.add_key_value(ki)
+        xmlsig.template.add_key_name(ki, 'rsakey.pem')
         ctx = xmlsig.SignatureContext()
         with open(path.join(BASE_DIR, "data/rsakey.pem"), "rb") as key_file:
             ctx.private_key = serialization.load_pem_private_key(
@@ -232,8 +236,6 @@ class TestSignature(unittest.TestCase):
                 password=None,
                 backend=default_backend()
             )
-        ctx.key_name = 'rsakey.pem'
-        self.assertEqual("rsakey.pem", ctx.key_name)
         with open(path.join(BASE_DIR, "data/rsacert.pem"), "rb") as cert_file:
             ctx.x509 = load_pem_x509_certificate(
                 cert_file.read(),

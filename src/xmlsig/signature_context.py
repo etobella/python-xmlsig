@@ -11,6 +11,7 @@ from lxml import etree
 
 from . import constants
 from .utils import b64_print, get_rdns_name
+from os import path
 
 
 class SignatureContext(object):
@@ -23,7 +24,7 @@ class SignatureContext(object):
         self.crl = None
         self.private_key = None
         self.public_key = None
-        self.key_name = ""
+        self.key_name = None
 
     def sign(self, node):
         """
@@ -55,7 +56,7 @@ class SignatureContext(object):
         if x509_data is not None:
             self.fill_x509_data(x509_data)
         key_name = key_info.find('ds:KeyName', namespaces=constants.NS_MAP)
-        if key_name is not None:
+        if key_name is not None and self.key_name is not None:
             key_name.text = self.key_name
         key_value = key_info.find('ds:KeyValue', namespaces=constants.NS_MAP)
         if key_value is not None:
@@ -147,6 +148,13 @@ class SignatureContext(object):
         :type node: lxml.etree.Element
         :return: None
         """
+        # Added XSD Validation
+        with open(path.join(
+                path.dirname(__file__), "data/xmldsig-core-schema.xsd"
+        ), "rb") as file:
+            schema = etree.XMLSchema(etree.fromstring(file.read()))
+        schema.assertValid(node)
+        # Validates reference value
         signed_info = node.find('ds:SignedInfo', namespaces=constants.NS_MAP)
         for reference in signed_info.findall(
                 'ds:Reference', namespaces=constants.NS_MAP
@@ -157,6 +165,7 @@ class SignatureContext(object):
                     reference.get("URI", '') +
                     '" failed'
                 )
+        # Validates signature value
         self.calculate_signature(node, False)
 
     def transform(self, transform, node):

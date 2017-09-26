@@ -12,7 +12,7 @@ def add_key_name(node, name=False):
     node.text = '\n'
     key_name = create_node('KeyName', node, DSigNs, tail='\n')
     if name:
-        key_name.set('Name', name)
+        key_name.text = name
     return key_name
 
 
@@ -80,9 +80,8 @@ def create(c14n_method=False, sign_method=False, name=False, ns='ds'):
 
 
 def ensure_key_info(node, name=False):
-    if node.find('{' + DSigNs + '}KeyInfo'):
-        key_info = node.find('{' + DSigNs + '}KeyInfo')
-    else:
+    key_info = node.find('{' + DSigNs + '}KeyInfo')
+    if key_info is None:
         key_info = create_node('KeyInfo', ns=DSigNs, tail='\n')
         node.insert(2, key_info)
     if name:

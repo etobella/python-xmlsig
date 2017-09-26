@@ -3,7 +3,5 @@
 XML Security Library example: Original XML doc file for sign5 example.
 -->
 <Envelope xmlns="urn:envelope">
-  <Data>
-	Hello, World!
-  </Data>
+  <Data ID="D1">HjY8ilZAIEM2tBbPn5mYO1ieIX4=</Data>
 </Envelope>
