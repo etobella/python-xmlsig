@@ -118,7 +118,9 @@ class TestSignature(unittest.TestCase):
                 cert_file.read(),
                 default_backend()
             )
-            ctx.public_key = x509.public_key()
+            #ctx.public_key = x509.public_key()
+        ctx.verify(sign)
+        ctx.public_key = x509.public_key()
         ctx.verify(sign)
         compare("data/sign2-out.xml", root)
 
@@ -244,3 +246,25 @@ class TestSignature(unittest.TestCase):
         ctx.sign(sign)
         ctx.verify(sign)
         compare("data/sign5-out.xml", root)
+
+    def test_fail_reference(self):
+        """Should sign a dynamicaly constructed template file using a key from a PEM file."""
+        root = parse_xml("data/sign-fail_reference.xml")
+        sign = root.xpath(
+            '//ds:Signature', namespaces={'ds': xmlsig.constants.DSigNs}
+        )[0]
+
+        ctx = xmlsig.SignatureContext()
+        with self.assertRaises(Exception):
+            ctx.verify(sign)
+
+    def test_fail_signature(self):
+        """Should sign a dynamicaly constructed template file using a key from a PEM file."""
+        root = parse_xml("data/sign-fail_signature.xml")
+        sign = root.xpath(
+            '//ds:Signature', namespaces={'ds': xmlsig.constants.DSigNs}
+        )[0]
+
+        ctx = xmlsig.SignatureContext()
+        with self.assertRaises(Exception):
+            ctx.verify(sign)

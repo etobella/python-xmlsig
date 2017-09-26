@@ -1,18 +1,23 @@
 <Envelope xmlns="urn:envelope">
-  <Data>
-	Hello, World!
-  </Data>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
-<SignedInfo>
-<CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
-<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#hmac-sha1"/>
-<Reference>
-<Transforms>
-<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
-</Transforms>
-<DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
-<DigestValue>HjY8ilZAIEM2tBbPn5mYO1ieIX4=</DigestValue>
-</Reference>
-</SignedInfo>
-<SignatureValue>19UsxRQcGj5QYR7krbXbwuxsDdc=</SignatureValue>
-</Signature></Envelope>
+<Data>Hello, World!</Data>
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#hmac-sha1"/>
+<ds:Reference>
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>ar01tgKya9a8sT7Px/K+h7i4+o4=</ds:DigestValue>
+</ds:Reference>
+<ds:Reference URI="#R1">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#base64"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>zlWCFIxvDBKCM1uH317Uvkt4E5k=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>qUCyD7HeCnVzLxcJdw/Mf5GBfzU=</ds:SignatureValue>
+<ds:Object Id="R1">U29tZSBUZXh0</ds:Object></ds:Signature></Envelope>

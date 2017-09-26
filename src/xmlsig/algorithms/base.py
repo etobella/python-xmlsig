@@ -45,8 +45,8 @@ class Algorithm(object):
                 base64.b64decode(x509_certificate.text),
                 default_backend()
             ).public_key()
-        if ctx.public_key:
+        if ctx.public_key is not None:
             return ctx.public_key
-        if isinstance(ctx.private_key, str):
+        if isinstance(ctx.private_key, (str, bytes)):
             return ctx.private_key
         return ctx.private_key.public_key()

@@ -65,7 +65,8 @@ TransformUsageUnknown = {
 
 }
 TransformUsageDSigTransform = [
-    TransformEnveloped
+    TransformEnveloped,
+    TransformBase64
 ]
 TransformUsageC14NMethod = {
     TransformInclC14N: {

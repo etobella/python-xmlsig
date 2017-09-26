@@ -195,6 +195,13 @@ class SignatureContext(object):
             root.remove(signature)
             return self.canonicalization(
                     constants.TransformInclC14N, root)
+        if method == constants.TransformBase64:
+            try:
+                root = etree.fromstring(node)
+                return base64.b64decode(root.text)
+            except Exception:
+                return base64.b64decode(node)
+
         raise Exception('Method not found')
 
     def canonicalization(self, method, node):
