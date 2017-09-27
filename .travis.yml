@@ -37,7 +37,7 @@ deps:
   - codecov
 
 install:
-  - pip install tox codecov PyOpenSSL
+  - pip install tox codecov
 
 script:
   - tox -e $TOXENV
