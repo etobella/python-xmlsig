@@ -325,7 +325,7 @@ class SignatureContext(object):
             'ds:SignatureMethod', namespaces=constants.NS_MAP
         ).get('Algorithm')
         if signature_method not in constants.TransformUsageSignatureMethod:
-            raise Exception('Method not accepted')
+            raise Exception('Method ' + signature_method + ' not accepted')
         signature = constants.TransformUsageSignatureMethod[signature_method]
         signed_info = self.canonicalization(
             canonicalization_method, signed_info_xml

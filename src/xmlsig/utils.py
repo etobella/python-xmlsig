@@ -70,6 +70,18 @@ def long_to_bytes(n, blocksize=0):
     return s
 
 
+def os2ip(arr):
+    x_len = len(arr)
+    x = 0
+    for i in range(x_len):
+        if USING_PYTHON2:
+            val = struct.unpack('B', arr[i])[0]
+        else:
+            val = arr[i]
+        x = x + (val * pow(256, x_len - i - 1))
+    return x
+
+
 def create_node(name, parent=None, ns='', tail=False, text=False):
     """
     Creates a new node
