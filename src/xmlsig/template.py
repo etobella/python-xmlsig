@@ -30,6 +30,8 @@ def add_reference(node, digest_method, name=False, uri=False, uri_type=False):
     )
     if name:
         reference.set(ID_ATTR, name)
+    if uri == "":
+        reference.set('URI', "")
     if uri:
         reference.set('URI', uri)
     if uri_type:
