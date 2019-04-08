@@ -2,9 +2,29 @@
 environment:
   matrix:
     - PYTHON: "C:\\Python27"
+      LXML: "3.5.0"
+    - PYTHON: "C:\\Python27"
+      LXML: "4.3.0"
     - PYTHON: "C:\\Python33"
+      LXML: "3.5.0"
+    - PYTHON: "C:\\Python33"
+      LXML: "4.3.0"
     - PYTHON: "C:\\Python34"
-    # - PYTHON: "C:\\Python35"
+      LXML: "3.5.0"
+    - PYTHON: "C:\\Python34"
+      LXML: "4.3.0"
+    - PYTHON: "C:\\Python35"
+      LXML: "3.5.0"
+    - PYTHON: "C:\\Python35"
+      LXML: "4.3.0"
+    - PYTHON: "C:\\Python36"
+      LXML: "3.5.0"
+    - PYTHON: "C:\\Python36"
+      LXML: "4.3.0"
+    - PYTHON: "C:\\Python37"
+      LXML: "3.5.0"
+    - PYTHON: "C:\\Python37"
+      LXML: "4.3.0"
 
 init:
   - "%PYTHON%/python -V"
@@ -12,7 +32,7 @@ init:
 
 install:
   - "%PYTHON%/Scripts/easy_install -U pip"
-  - "%PYTHON%/Scripts/easy_install lxml==3.5.0"
+  - "%PYTHON%/Scripts/easy_install lxml==%LXML"
   - "%PYTHON%/Scripts/pip install wheel"
   - "%PYTHON%/Scripts/pip install -e .[test]"
 
