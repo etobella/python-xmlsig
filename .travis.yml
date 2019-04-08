@@ -1,6 +1,5 @@
 ---
 sudo: false
-dist: trusty
 language: python
 
 addons:
@@ -14,17 +13,32 @@ addons:
 matrix:
   include:
     - python: 2.7
-      env: TOXENV=py27
-    - python: 3.3
-      env: TOXENV=py33
+      dist: trusty
+      env: TOXENV=py27 LXML_VERSION=3.5.0
     - python: 3.4
-      env: TOXENV=py34
+      dist: trusty
+      env: TOXENV=py34 LXML_VERSION=3.5.0
     - python: 3.5
-      env: TOXENV=py35
+      dist: trusty
+      env: TOXENV=py35 LXML_VERSION=3.5.0
     - python: 3.6
-      env: TOXENV=py36
-    - python: pypy-5.3.1
-      env: TOXENV=pypy
+      dist: trusty
+      env: TOXENV=py36 LXML_VERSION=3.5.0
+    - python: 2.7
+      dist: trusty
+      env: TOXENV=py27 LXML_VERSION=4.3.0
+    - python: 3.4
+      dist: trusty
+      env: TOXENV=py34 LXML_VERSION=4.3.0
+    - python: 3.5
+      dist: trusty
+      env: TOXENV=py35 LXML_VERSION=4.3.0
+    - python: 3.6
+      dist: trusty
+      env: TOXENV=py36 LXML_VERSION=4.3.0
+    - python: 3.7
+      dist: xenial
+      env: TOXENV=py37 LXML_VERSION=4.3.0
 
 before_cache:
   - rm -rf $HOME/.cache/pip/log
@@ -38,6 +52,7 @@ deps:
 
 install:
   - pip install tox codecov
+  - pip install lxml==$LXML_VERSION
 
 script:
   - tox -e $TOXENV
