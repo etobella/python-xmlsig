@@ -99,10 +99,9 @@ class SignatureContext(object):
             )
         x509_certificate = x509_data.find("ds:X509Certificate", namespaces=NS_MAP)
         if x509_certificate is not None:
-            s = base64.b64encode(
-                self.x509.public_bytes(encoding=serialization.Encoding.DER)
-            )
-            x509_certificate.text = b64_print(s)
+            certificate = self.x509.public_bytes(encoding=serialization.Encoding.DER)
+            certificate_b64 = base64.b64encode(certificate)
+            x509_certificate.text = b64_print(certificate_b64)  # Cosmetics
             for certificate in self.ca_certificates:
                 certificate_node = create_node(
                     "X509Certificate", None, constants.DSigNs, tail="\n"
