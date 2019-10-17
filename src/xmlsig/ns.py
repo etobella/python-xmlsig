@@ -4,6 +4,7 @@
 
 DSigNs = 'http://www.w3.org/2000/09/xmldsig#'
 DSigNs11 = 'http://www.w3.org/2009/xmldsig11#'
+DSigNs2 = 'http://www.w3.org/2010/xmldsig2#'
 DSignNsMore = 'http://www.w3.org/2001/04/xmldsig-more#'
 EncNs = 'http://www.w3.org/2001/04/xmlenc#'
 XPathNs = 'http://www.w3.org/TR/1999/REC-xpath-19991116'
