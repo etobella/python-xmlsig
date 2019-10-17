@@ -166,39 +166,51 @@ class SignatureContext(object):
         # Validates signature value
         self.calculate_signature(DS_Signature, False)
 
-    def transform(self, transform, node):
+    def transform_xmlsig1x(self, DS_transform, target):
         """
         Transforms a node following the transform especification
-        :param transform: Transform node
-        :type transform: lxml.etree.Element
-        :param node: Element to transform
-        :type node: str
+        :param DS_transform: Transform node
+        :type DS_transform: lxml.etree.Element
+        :param target: Element to transform
+        :type target: lxml.etree.Element or octet-stream (Base64 method only)
         :return: Transformed node in a String
         """
-        method = transform.get('Algorithm')
-        if method not in constants.TransformUsageDSigTransform:
-            raise Exception('Method not allowed')
-        # C14N methods are allowed
-        if method in constants.TransformUsageC14NMethod:
-            return self.canonicalization(method, etree.fromstring(node))
-        # Enveloped method removes the Signature Node from the element
-        if method == constants.TransformEnveloped:
-            tree = transform.getroottree()
-            root = etree.fromstring(node)
-            signature = root.find(
-                tree.getelementpath(
-                    transform.getparent().getparent().getparent().getparent()
-                )
-            )
-            root.remove(signature)
-            return self.canonicalization(
-                    constants.TransformInclC14N, root)
-        if method == constants.TransformBase64:
-            try:
-                root = etree.fromstring(node)
-                return base64.b64decode(root.text)
-            except Exception:
-                return base64.b64decode(node)
+
+        # XML Elements we work on
+        algorithm = DS_transform.get('Algorithm')
+        if algorithm == constants.TransformXmlSig2Tranform:
+            raise NotImplementedError(
+                "XML Signature 2.0 transforms are not implemented (yet)."
+                "Please consider to submit an upstream PR")
+
+        # By now, it is guaranteed to be an XML Signature 1.x Transform
+
+        # Validate the transform algorithm
+        if algorithm not in constants.TransformUsageDSigTransform:
+            raise NotIMplementedError(
+                "XML Signature 1.x Transform algorithm '{}' is not "
+                "implemented (yet). Please consider to submit an "
+                "upstream PR".format(algorithm))
+
+        # C14N methods:
+        # Canonicalize with additional canoncialization method
+        if algorithm in constants.TransformUsageC14NMethod:
+            return self.canonicalization(algorithm, target)
+
+        # Enveloped method:
+        # Remove parent <ds:Signature/> of this <ds:Transform/>
+        if algorithm == constants.TransformEnveloped:
+            signature = DS_transform.iterancestors('{*}Signature')[0]
+            target.remove(signature)
+            _algorithm = constants.TransformInclC14N,
+            return self.canonicalization(_algorithm, target)
+
+        # Base64 Method:
+        # Base 64 decode the target's text element
+        if algorithm == constants.TransformBase64:
+            if isinstance(target, str):
+                base64.b64decode(target)
+            return base64.b64decode(target.text)
 
         raise Exception('Method not found')
 
@@ -289,7 +301,7 @@ class SignatureContext(object):
             for transform in transforms.findall(
                     'ds:Transform', namespaces=constants.NS_MAP
             ):
-                node = self.transform(transform, node)
+                node = self.transform(transform, etree.prase(node))
         digest_value = self.digest(
             reference.find(
                 'ds:DigestMethod', namespaces=constants.NS_MAP
