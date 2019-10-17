@@ -10,6 +10,7 @@ from cryptography.x509.oid import ExtensionOID
 from lxml import etree
 
 from . import constants
+from .constants import NS_MAP
 from .utils import b64_print, get_rdns_name
 from os import path
 
@@ -26,24 +27,24 @@ class SignatureContext(object):
         self.public_key = None
         self.key_name = None
 
-    def sign(self, node):
+    def sign(self, DS_Signature):
         """
         Signs a Signature node
         :param node: Signature node 
         :type node: lxml.etree.Element
         :return: None
         """
-        signed_info = node.find('ds:SignedInfo', namespaces=constants.NS_MAP)
+        signed_info = DS_Signature.find('ds:SignedInfo', namespaces=NS_MAP)
         signature_method = signed_info.find('ds:SignatureMethod',
-                                            namespaces=constants.NS_MAP).get(
+                                            namespaces=NS_MAP).get(
             'Algorithm')
-        key_info = node.find('ds:KeyInfo', namespaces=constants.NS_MAP)
+        key_info = DS_Signature.find('ds:KeyInfo', namespaces=NS_MAP)
         if key_info is not None:
-            self.fill_key_info(key_info, signature_method)
-        self.fill_signed_info(signed_info)
-        self.calculate_signature(node)
+            self._fill_key_info(key_info, signature_method)
+        self._fill_signed_info(signed_info)
+        self.calculate_signature(DS_Signature)
 
-    def fill_key_info(self, key_info, signature_method):
+    def _fill_key_info(self, key_info, signature_method):
         """
         Fills the KeyInfo node
         :param key_info: KeyInfo node 
@@ -52,13 +53,13 @@ class SignatureContext(object):
         :type signature_method: str
         :return: None
         """
-        x509_data = key_info.find('ds:X509Data', namespaces=constants.NS_MAP)
+        x509_data = key_info.find('ds:X509Data', namespaces=NS_MAP)
         if x509_data is not None:
-            self.fill_x509_data(x509_data)
-        key_name = key_info.find('ds:KeyName', namespaces=constants.NS_MAP)
+            self._fill_x509_data(x509_data)
+        key_name = key_info.find('ds:KeyName', namespaces=NS_MAP)
         if key_name is not None and self.key_name is not None:
             key_name.text = self.key_name
-        key_value = key_info.find('ds:KeyValue', namespaces=constants.NS_MAP)
+        key_value = key_info.find('ds:KeyValue', namespaces=NS_MAP)
         if key_value is not None:
             key_value.text = '\n'
             signature = constants.TransformUsageSignatureMethod[
@@ -73,7 +74,7 @@ class SignatureContext(object):
                 raise Exception('Key not compatible with signature method')
             signature['method'].key_value(key_value, key)
 
-    def fill_x509_data(self, x509_data):
+    def _fill_x509_data(self, x509_data):
         """
         Fills the X509Data Node
         :param x509_data: X509Data Node
@@ -81,29 +82,29 @@ class SignatureContext(object):
         :return: None
         """
         x509_issuer_serial = x509_data.find(
-            'ds:X509IssuerSerial', namespaces=constants.NS_MAP
+            'ds:X509IssuerSerial', namespaces=NS_MAP
         )
         if x509_issuer_serial is not None:
-            self.fill_x509_issuer_name(x509_issuer_serial)
+            self._fill_x509_issuer_name(x509_issuer_serial)
 
-        x509_crl = x509_data.find('ds:X509CRL', namespaces=constants.NS_MAP)
+        x509_crl = x509_data.find('ds:X509CRL', namespaces=NS_MAP)
         if x509_crl is not None and self.crl is not None:
             x509_data.text = base64.b64encode(
                 self.crl.public_bytes(serialization.Encoding.DER)
             )
         x509_subject = x509_data.find(
-            'ds:X509SubjectName', namespaces=constants.NS_MAP
+            'ds:X509SubjectName', namespaces=NS_MAP
         )
         if x509_subject is not None:
             x509_subject.text = get_rdns_name(self.x509.subject.rdns)
-        x509_ski = x509_data.find('ds:X509SKI', namespaces=constants.NS_MAP)
+        x509_ski = x509_data.find('ds:X509SKI', namespaces=NS_MAP)
         if x509_ski is not None:
             x509_ski.text = base64.b64encode(
                 self.x509.extensions.get_extension_for_oid(
                     ExtensionOID.SUBJECT_KEY_IDENTIFIER
                 ).value.digest)
         x509_certificate = x509_data.find(
-            'ds:X509Certificate', namespaces=constants.NS_MAP
+            'ds:X509Certificate', namespaces=NS_MAP
         )
         if x509_certificate is not None:
             s = base64.b64encode(
@@ -111,7 +112,7 @@ class SignatureContext(object):
             )
             x509_certificate.text = b64_print(s)
 
-    def fill_x509_issuer_name(self, x509_issuer_serial):
+    def _fill_x509_issuer_name(self, x509_issuer_serial):
         """
         Fills the X509IssuerSerial node
         :param x509_issuer_serial: X509IssuerSerial node
@@ -119,29 +120,27 @@ class SignatureContext(object):
         :return: None
         """
         x509_issuer_name = x509_issuer_serial.find(
-            'ds:X509IssuerName', namespaces=constants.NS_MAP
+            'ds:X509IssuerName', namespaces=NS_MAP
         )
         if x509_issuer_name is not None:
             x509_issuer_name.text = get_rdns_name(self.x509.issuer.rdns)
         x509_issuer_number = x509_issuer_serial.find(
-            'ds:X509SerialNumber', namespaces=constants.NS_MAP
+            'ds:X509SerialNumber', namespaces=NS_MAP
         )
         if x509_issuer_number is not None:
             x509_issuer_number.text = str(self.x509.serial_number)
 
-    def fill_signed_info(self, signed_info):
+    def _fill_signed_info(self, signed_info):
         """
         Fills the SignedInfo node
         :param signed_info: SignedInfo node
         :type signed_info: lxml.etree.Element
         :return: None
         """
-        for reference in signed_info.findall(
-                'ds:Reference', namespaces=constants.NS_MAP
-        ):
+        for reference in signed_info.findall('ds:Reference', namespaces=NS_MAP):
             self.calculate_reference(reference, True)
 
-    def verify(self, node):
+    def verify(self, DS_Signature):
         """
         Verifies a signature
         :param node: Signature node
@@ -153,11 +152,11 @@ class SignatureContext(object):
                 path.dirname(__file__), "data/xmldsig-core-schema.xsd"
         ), "rb") as file:
             schema = etree.XMLSchema(etree.fromstring(file.read()))
-        schema.assertValid(node)
+        schema.assertValid(DS_Signature)
         # Validates reference value
-        signed_info = node.find('ds:SignedInfo', namespaces=constants.NS_MAP)
+        signed_info = DS_Signature.find('ds:SignedInfo', namespaces=NS_MAP)
         for reference in signed_info.findall(
-                'ds:Reference', namespaces=constants.NS_MAP
+                'ds:Reference', namespaces=NS_MAP
         ):
             if not self.calculate_reference(reference, False):
                 raise Exception(
@@ -166,7 +165,7 @@ class SignatureContext(object):
                     '" failed'
                 )
         # Validates signature value
-        self.calculate_signature(node, False)
+        self.calculate_signature(DS_Signature, False)
 
     def transform(self, transform, node):
         """
