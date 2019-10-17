@@ -107,10 +107,9 @@ class SignatureContext(object):
             'ds:X509Certificate', namespaces=NS_MAP
         )
         if x509_certificate is not None:
-            s = base64.b64encode(
-                self.x509.public_bytes(encoding=serialization.Encoding.DER)
-            )
-            x509_certificate.text = b64_print(s)
+            certificate = self.x509.public_bytes(encoding=serialization.Encoding.DER)
+            certificat_b64 = base64.b64encode(certificate)
+            x509_certificate.text = b64_print(certificat_b64)  # Cosmetics
 
     def _fill_x509_issuer_name(self, x509_issuer_serial):
         """
