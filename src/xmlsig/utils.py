@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2017 Creu Blanca
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
@@ -20,9 +19,10 @@ def b64_print(s):
     if USING_PYTHON2:
         string = str(s)
     else:
-        string = str(s, 'utf8')
-    return '\n'.join(
-        string[pos:pos + b64_intro] for pos in range(0, len(string), b64_intro)
+        string = str(s, "utf8")
+    return "\n".join(
+        string[pos : pos + b64_intro]  # noqa: E203
+        for pos in range(0, len(string), b64_intro)
     )
 
 
@@ -34,26 +34,26 @@ def long_to_bytes(n, blocksize=0):
     blocksize.
     """
     # after much testing, this algorithm was deemed to be the fastest
-    s = b''
+    s = b""
     if USING_PYTHON2:
         n = long(n)  # noqa
     pack = struct.pack
     while n > 0:
-        s = pack(b'>I', n & 0xffffffff) + s
+        s = pack(b">I", n & 0xFFFFFFFF) + s
         n = n >> 32
     # strip off leading zeros
     for i in range(len(s)):
-        if s[i] != b'\000'[0]:
+        if s[i] != b"\000"[0]:
             break
     else:
         # only happens when n == 0
-        s = b'\000'
+        s = b"\000"
         i = 0
     s = s[i:]
     # add back some pad bytes.  this could be done more efficiently w.r.t. the
     # de-padding being done above, but sigh...
     if blocksize > 0 and len(s) % blocksize:
-        s = (blocksize - len(s) % blocksize) * b'\000' + s
+        s = (blocksize - len(s) % blocksize) * b"\000" + s
     return s
 
 
@@ -62,14 +62,14 @@ def os2ip(arr):
     x = 0
     for i in range(x_len):
         if USING_PYTHON2:
-            val = struct.unpack('B', arr[i])[0]
+            val = struct.unpack("B", arr[i])[0]
         else:
             val = arr[i]
         x = x + (val * pow(256, x_len - i - 1))
     return x
 
 
-def create_node(name, parent=None, ns='', tail=False, text=False):
+def create_node(name, parent=None, ns="", tail=False, text=False):
     """
     Creates a new node
     :param name: Node name
@@ -96,4 +96,4 @@ def get_rdns_name(rdns):
     :type rdns: cryptography.x509.RelativeDistinguishedName
     :return: RDNS name
     """
-    return ','.join(dn.rfc4514_string() for dn in rdns)
+    return ",".join(dn.rfc4514_string() for dn in rdns)

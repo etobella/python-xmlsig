@@ -1,13 +1,13 @@
 import unittest
 from os import path
 
-from OpenSSL import crypto
+import xmlsig
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import load_pem_x509_certificate
+from OpenSSL import crypto
 
-import xmlsig
-from .base import parse_xml, compare, BASE_DIR
+from .base import BASE_DIR, compare, parse_xml
 
 
 class TestSignature(unittest.TestCase):
@@ -18,13 +18,13 @@ class TestSignature(unittest.TestCase):
         """
 
         # Load document file.
-        template = parse_xml('data/sign-doc.xml')
+        template = parse_xml("data/sign-doc.xml")
 
         # Create a signature template for RSA-SHA1 enveloped signature.
         sign = xmlsig.template.create(
             c14n_method=xmlsig.constants.TransformExclC14N,
             sign_method=xmlsig.constants.TransformRsaSha1,
-            ns=None
+            ns=None,
         )
 
         assert sign is not None
@@ -33,8 +33,7 @@ class TestSignature(unittest.TestCase):
         template.append(sign)
 
         # Add the <ds:Reference/> node to the signature template.
-        ref = xmlsig.template.add_reference(sign,
-                                            xmlsig.constants.TransformSha1)
+        ref = xmlsig.template.add_reference(sign, xmlsig.constants.TransformSha1)
 
         # Add the enveloped transform descriptor.
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
@@ -54,43 +53,40 @@ class TestSignature(unittest.TestCase):
         ctx.sign(sign)
         ctx.verify(sign)
         # Assert the contents of the XML document against the expected result.
-        compare('data/sign-res.xml', template)
+        compare("data/sign-res.xml", template)
 
     def tes_sign_case1(self):
         """Should sign a pre-constructed template file using a key from a PEM file."""
         root = parse_xml("data/sign1-in.xml")
-        sign = root.xpath(
-            '//ds:Signature', namespaces={'ds': xmlsig.constants.DSigNs}
-        )[0]
+        sign = root.xpath("//ds:Signature", namespaces={"ds": xmlsig.constants.DSigNs})[
+            0
+        ]
         self.assertIsNotNone(sign)
 
         ctx = xmlsig.SignatureContext()
         with open(path.join(BASE_DIR, "data/rsakey.pem"), "rb") as key_file:
             ctx.private_key = serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
+                key_file.read(), password=None, backend=default_backend()
             )
-        ctx.key_name = 'rsakey.pem'
+        ctx.key_name = "rsakey.pem"
         self.assertEqual("rsakey.pem", ctx.key_name)
 
         ctx.sign(sign)
         ctx.verify(sign)
-        compare('sign1-out.xml', root)
+        compare("sign1-out.xml", root)
 
     def test_sign_case2(self):
-        """Should sign a dynamicaly constructed template file using a key from a PEM file."""
+        """Should sign a dynamicaly constructed template file using
+        a key from a PEM file."""
         root = parse_xml("data/sign2-in.xml")
         sign = xmlsig.template.create(
             c14n_method=xmlsig.constants.TransformExclC14N,
             sign_method=xmlsig.constants.TransformRsaSha1,
-            ns=None
+            ns=None,
         )
         self.assertIsNotNone(sign)
         root.append(sign)
-        ref = xmlsig.template.add_reference(
-            sign, xmlsig.constants.TransformSha1
-        )
+        ref = xmlsig.template.add_reference(sign, xmlsig.constants.TransformSha1)
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
         ki = xmlsig.template.ensure_key_info(sign)
         xmlsig.template.add_key_name(ki)
@@ -99,72 +95,60 @@ class TestSignature(unittest.TestCase):
         ctx = xmlsig.SignatureContext()
         with open(path.join(BASE_DIR, "data/rsakey.pem"), "rb") as key_file:
             ctx.private_key = serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
+                key_file.read(), password=None, backend=default_backend()
             )
-        ctx.key_name = 'rsakey.pem'
+        ctx.key_name = "rsakey.pem"
         self.assertEqual("rsakey.pem", ctx.key_name)
         ctx.sign(sign)
         with open(path.join(BASE_DIR, "data/rsacert.pem"), "rb") as cert_file:
-            x509 = load_pem_x509_certificate(
-                cert_file.read(),
-                default_backend()
-            )
+            x509 = load_pem_x509_certificate(cert_file.read(), default_backend())
         ctx.verify(sign)
         ctx.public_key = x509.public_key()
         ctx.verify(sign)
         compare("data/sign2-out.xml", root)
 
     def test_sign_case3(self):
-        """Should sign a file using a dynamicaly created template, key from PEM and an X509 cert."""
+        """Should sign a file using a dynamicaly created template, key from
+        PEM and an X509 cert."""
         root = parse_xml("data/sign3-in.xml")
         sign = xmlsig.template.create(
             xmlsig.constants.TransformExclC14N,
             xmlsig.constants.TransformRsaSha1,
-            ns=None
+            ns=None,
         )
         self.assertIsNotNone(sign)
         root.append(sign)
-        ref = xmlsig.template.add_reference(
-            sign, xmlsig.constants.TransformSha1
-        )
+        ref = xmlsig.template.add_reference(sign, xmlsig.constants.TransformSha1)
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
         ki = xmlsig.template.ensure_key_info(sign)
-        xmlsig.template.x509_data_add_certificate(
-            xmlsig.template.add_x509_data(ki)
-        )
+        xmlsig.template.x509_data_add_certificate(xmlsig.template.add_x509_data(ki))
 
         ctx = xmlsig.SignatureContext()
         with open(path.join(BASE_DIR, "data/rsakey.pem"), "rb") as key_file:
             ctx.private_key = serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
+                key_file.read(), password=None, backend=default_backend()
             )
-        ctx.key_name = 'rsakey.pem'
+        ctx.key_name = "rsakey.pem"
         self.assertEqual("rsakey.pem", ctx.key_name)
         with open(path.join(BASE_DIR, "data/rsacert.pem"), "rb") as cert_file:
-            ctx.x509 = load_pem_x509_certificate(
-                cert_file.read(),
-                default_backend()
-            )
+            ctx.x509 = load_pem_x509_certificate(cert_file.read(), default_backend())
             ctx.public_key = ctx.x509.public_key()
         ctx.sign(sign)
         ctx.verify(sign)
         compare("data/sign3-out.xml", root)
 
     def test_sign_case4(self):
-        """Should sign a file using a dynamically created template, key from PEM and an X509 cert with custom ns."""
+        """Should sign a file using a dynamically created template, key from PEM
+        and an X509 cert with custom ns."""
 
         root = parse_xml("data/sign4-in.xml")
-        elem_id = root.get('ID', None)
+        elem_id = root.get("ID", None)
         if elem_id:
-            elem_id = '#' + elem_id
+            elem_id = "#" + elem_id
         sign = xmlsig.template.create(
             c14n_method=xmlsig.constants.TransformExclC14N,
             sign_method=xmlsig.constants.TransformRsaSha1,
-            ns="ds"
+            ns="ds",
         )
         self.assertIsNotNone(sign)
         root.append(sign)
@@ -174,36 +158,29 @@ class TestSignature(unittest.TestCase):
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformExclC14N)
         ki = xmlsig.template.ensure_key_info(sign)
-        xmlsig.template.x509_data_add_certificate(
-            xmlsig.template.add_x509_data(ki)
-        )
+        xmlsig.template.x509_data_add_certificate(xmlsig.template.add_x509_data(ki))
         ctx = xmlsig.SignatureContext()
         with open(path.join(BASE_DIR, "data/rsakey.pem"), "rb") as key_file:
             ctx.private_key = serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
+                key_file.read(), password=None, backend=default_backend()
             )
-        ctx.key_name = 'rsakey.pem'
+        ctx.key_name = "rsakey.pem"
         self.assertEqual("rsakey.pem", ctx.key_name)
         with open(path.join(BASE_DIR, "data/rsacert.pem"), "rb") as cert_file:
-            ctx.x509 = load_pem_x509_certificate(
-                cert_file.read(),
-                default_backend()
-            )
+            ctx.x509 = load_pem_x509_certificate(cert_file.read(), default_backend())
         ctx.sign(sign)
         ctx.verify(sign)
         compare("data/sign4-out.xml", root)
 
     def test_sign_case5(self):
-        """Should sign a file using a dynamicaly created template, key from 
+        """Should sign a file using a dynamicaly created template, key from
         PEM file and an X509 certificate."""
         root = parse_xml("data/sign5-in.xml")
         sign = xmlsig.template.create(
             c14n_method=xmlsig.constants.TransformExclC14N,
             sign_method=xmlsig.constants.TransformRsaSha256,
             ns=None,
-            name="S1"
+            name="S1",
         )
         self.assertIsNotNone(sign)
         root.append(sign)
@@ -219,22 +196,16 @@ class TestSignature(unittest.TestCase):
         xmlsig.template.x509_data_add_ski(x509)
         x509_issuer_serial = xmlsig.template.x509_data_add_issuer_serial(x509)
         xmlsig.template.x509_issuer_serial_add_issuer_name(x509_issuer_serial)
-        xmlsig.template.x509_issuer_serial_add_serial_number(
-            x509_issuer_serial)
+        xmlsig.template.x509_issuer_serial_add_serial_number(x509_issuer_serial)
         xmlsig.template.add_key_value(ki)
-        xmlsig.template.add_key_name(ki, 'rsakey.pem')
+        xmlsig.template.add_key_name(ki, "rsakey.pem")
         ctx = xmlsig.SignatureContext()
         with open(path.join(BASE_DIR, "data/rsakey.pem"), "rb") as key_file:
             ctx.private_key = serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
+                key_file.read(), password=None, backend=default_backend()
             )
         with open(path.join(BASE_DIR, "data/rsacert.pem"), "rb") as cert_file:
-            ctx.x509 = load_pem_x509_certificate(
-                cert_file.read(),
-                default_backend()
-            )
+            ctx.x509 = load_pem_x509_certificate(cert_file.read(), default_backend())
         ctx.sign(sign)
         ctx.verify(sign)
         compare("data/sign5-out.xml", root)
@@ -242,9 +213,9 @@ class TestSignature(unittest.TestCase):
     def test_fail_reference(self):
         """Should sign a dynamicaly constructed template file using a key from a PEM file."""
         root = parse_xml("data/sign-fail_reference.xml")
-        sign = root.xpath(
-            '//ds:Signature', namespaces={'ds': xmlsig.constants.DSigNs}
-        )[0]
+        sign = root.xpath("//ds:Signature", namespaces={"ds": xmlsig.constants.DSigNs})[
+            0
+        ]
 
         ctx = xmlsig.SignatureContext()
         with self.assertRaises(Exception):
@@ -253,9 +224,9 @@ class TestSignature(unittest.TestCase):
     def test_fail_signature(self):
         """Should sign a dynamicaly constructed template file using a key from a PEM file."""
         root = parse_xml("data/sign-fail_signature.xml")
-        sign = root.xpath(
-            '//ds:Signature', namespaces={'ds': xmlsig.constants.DSigNs}
-        )[0]
+        sign = root.xpath("//ds:Signature", namespaces={"ds": xmlsig.constants.DSigNs})[
+            0
+        ]
 
         ctx = xmlsig.SignatureContext()
         with self.assertRaises(Exception):

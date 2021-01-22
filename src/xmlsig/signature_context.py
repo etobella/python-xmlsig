@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 # © 2017 Creu Blanca
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 import base64
 import hashlib
+from os import path
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import ExtensionOID
@@ -11,7 +11,6 @@ from lxml import etree
 
 from . import constants
 from .utils import b64_print, get_rdns_name
-from os import path
 
 
 class SignatureContext(object):
@@ -29,15 +28,15 @@ class SignatureContext(object):
     def sign(self, node):
         """
         Signs a Signature node
-        :param node: Signature node 
+        :param node: Signature node
         :type node: lxml.etree.Element
         :return: None
         """
-        signed_info = node.find('ds:SignedInfo', namespaces=constants.NS_MAP)
-        signature_method = signed_info.find('ds:SignatureMethod',
-                                            namespaces=constants.NS_MAP).get(
-            'Algorithm')
-        key_info = node.find('ds:KeyInfo', namespaces=constants.NS_MAP)
+        signed_info = node.find("ds:SignedInfo", namespaces=constants.NS_MAP)
+        signature_method = signed_info.find(
+            "ds:SignatureMethod", namespaces=constants.NS_MAP
+        ).get("Algorithm")
+        key_info = node.find("ds:KeyInfo", namespaces=constants.NS_MAP)
         if key_info is not None:
             self.fill_key_info(key_info, signature_method)
         self.fill_signed_info(signed_info)
@@ -46,32 +45,28 @@ class SignatureContext(object):
     def fill_key_info(self, key_info, signature_method):
         """
         Fills the KeyInfo node
-        :param key_info: KeyInfo node 
+        :param key_info: KeyInfo node
         :type key_info: lxml.etree.Element
         :param signature_method: Signature node to use
         :type signature_method: str
         :return: None
         """
-        x509_data = key_info.find('ds:X509Data', namespaces=constants.NS_MAP)
+        x509_data = key_info.find("ds:X509Data", namespaces=constants.NS_MAP)
         if x509_data is not None:
             self.fill_x509_data(x509_data)
-        key_name = key_info.find('ds:KeyName', namespaces=constants.NS_MAP)
+        key_name = key_info.find("ds:KeyName", namespaces=constants.NS_MAP)
         if key_name is not None and self.key_name is not None:
             key_name.text = self.key_name
-        key_value = key_info.find('ds:KeyValue', namespaces=constants.NS_MAP)
+        key_value = key_info.find("ds:KeyValue", namespaces=constants.NS_MAP)
         if key_value is not None:
-            key_value.text = '\n'
-            signature = constants.TransformUsageSignatureMethod[
-                signature_method
-            ]
+            key_value.text = "\n"
+            signature = constants.TransformUsageSignatureMethod[signature_method]
             key = self.public_key
             if self.public_key is None:
                 key = self.private_key.public_key()
-            if not isinstance(
-                    key, signature['method'].public_key_class
-            ):
-                raise Exception('Key not compatible with signature method')
-            signature['method'].key_value(key_value, key)
+            if not isinstance(key, signature["method"].public_key_class):
+                raise Exception("Key not compatible with signature method")
+            signature["method"].key_value(key_value, key)
 
     def fill_x509_data(self, x509_data):
         """
@@ -81,29 +76,28 @@ class SignatureContext(object):
         :return: None
         """
         x509_issuer_serial = x509_data.find(
-            'ds:X509IssuerSerial', namespaces=constants.NS_MAP
+            "ds:X509IssuerSerial", namespaces=constants.NS_MAP
         )
         if x509_issuer_serial is not None:
             self.fill_x509_issuer_name(x509_issuer_serial)
 
-        x509_crl = x509_data.find('ds:X509CRL', namespaces=constants.NS_MAP)
+        x509_crl = x509_data.find("ds:X509CRL", namespaces=constants.NS_MAP)
         if x509_crl is not None and self.crl is not None:
             x509_data.text = base64.b64encode(
                 self.crl.public_bytes(serialization.Encoding.DER)
             )
-        x509_subject = x509_data.find(
-            'ds:X509SubjectName', namespaces=constants.NS_MAP
-        )
+        x509_subject = x509_data.find("ds:X509SubjectName", namespaces=constants.NS_MAP)
         if x509_subject is not None:
             x509_subject.text = get_rdns_name(self.x509.subject.rdns)
-        x509_ski = x509_data.find('ds:X509SKI', namespaces=constants.NS_MAP)
+        x509_ski = x509_data.find("ds:X509SKI", namespaces=constants.NS_MAP)
         if x509_ski is not None:
             x509_ski.text = base64.b64encode(
                 self.x509.extensions.get_extension_for_oid(
                     ExtensionOID.SUBJECT_KEY_IDENTIFIER
-                ).value.digest)
+                ).value.digest
+            )
         x509_certificate = x509_data.find(
-            'ds:X509Certificate', namespaces=constants.NS_MAP
+            "ds:X509Certificate", namespaces=constants.NS_MAP
         )
         if x509_certificate is not None:
             s = base64.b64encode(
@@ -119,12 +113,12 @@ class SignatureContext(object):
         :return: None
         """
         x509_issuer_name = x509_issuer_serial.find(
-            'ds:X509IssuerName', namespaces=constants.NS_MAP
+            "ds:X509IssuerName", namespaces=constants.NS_MAP
         )
         if x509_issuer_name is not None:
             x509_issuer_name.text = get_rdns_name(self.x509.issuer.rdns)
         x509_issuer_number = x509_issuer_serial.find(
-            'ds:X509SerialNumber', namespaces=constants.NS_MAP
+            "ds:X509SerialNumber", namespaces=constants.NS_MAP
         )
         if x509_issuer_number is not None:
             x509_issuer_number.text = str(self.x509.serial_number)
@@ -137,7 +131,7 @@ class SignatureContext(object):
         :return: None
         """
         for reference in signed_info.findall(
-                'ds:Reference', namespaces=constants.NS_MAP
+            "ds:Reference", namespaces=constants.NS_MAP
         ):
             self.calculate_reference(reference, True)
 
@@ -149,21 +143,19 @@ class SignatureContext(object):
         :return: None
         """
         # Added XSD Validation
-        with open(path.join(
-                path.dirname(__file__), "data/xmldsig-core-schema.xsd"
-        ), "rb") as file:
+        with open(
+            path.join(path.dirname(__file__), "data/xmldsig-core-schema.xsd"), "rb"
+        ) as file:
             schema = etree.XMLSchema(etree.fromstring(file.read()))
         schema.assertValid(node)
         # Validates reference value
-        signed_info = node.find('ds:SignedInfo', namespaces=constants.NS_MAP)
+        signed_info = node.find("ds:SignedInfo", namespaces=constants.NS_MAP)
         for reference in signed_info.findall(
-                'ds:Reference', namespaces=constants.NS_MAP
+            "ds:Reference", namespaces=constants.NS_MAP
         ):
             if not self.calculate_reference(reference, False):
                 raise Exception(
-                    'Reference with URI:"' +
-                    reference.get("URI", '') +
-                    '" failed'
+                    'Reference with URI:"' + reference.get("URI", "") + '" failed'
                 )
         # Validates signature value
         self.calculate_signature(node, False)
@@ -177,9 +169,9 @@ class SignatureContext(object):
         :type node: str
         :return: Transformed node in a String
         """
-        method = transform.get('Algorithm')
+        method = transform.get("Algorithm")
         if method not in constants.TransformUsageDSigTransform:
-            raise Exception('Method not allowed')
+            raise Exception("Method not allowed")
         # C14N methods are allowed
         if method in constants.TransformUsageC14NMethod:
             return self.canonicalization(method, etree.fromstring(node))
@@ -193,8 +185,7 @@ class SignatureContext(object):
                 )
             )
             root.remove(signature)
-            return self.canonicalization(
-                    constants.TransformInclC14N, root)
+            return self.canonicalization(constants.TransformInclC14N, root)
         if method == constants.TransformBase64:
             try:
                 root = etree.fromstring(node)
@@ -202,7 +193,7 @@ class SignatureContext(object):
             except Exception:
                 return base64.b64decode(node)
 
-        raise Exception('Method not found')
+        raise Exception("Method not found")
 
     def canonicalization(self, method, node):
         """
@@ -214,13 +205,13 @@ class SignatureContext(object):
         :return: Canonicalized node in a String
         """
         if method not in constants.TransformUsageC14NMethod:
-            raise Exception('Method not allowed: ' + method)
+            raise Exception("Method not allowed: " + method)
         c14n_method = constants.TransformUsageC14NMethod[method]
         return etree.tostring(
             node,
-            method=c14n_method['method'],
-            with_comments=c14n_method['comments'],
-            exclusive=c14n_method['exclusive']
+            method=c14n_method["method"],
+            with_comments=c14n_method["comments"],
+            exclusive=c14n_method["exclusive"],
         )
 
     def digest(self, method, node):
@@ -233,7 +224,7 @@ class SignatureContext(object):
         :return: hash result
         """
         if method not in constants.TransformUsageDigestMethod:
-            raise Exception('Method not allowed')
+            raise Exception("Method not allowed")
         lib = hashlib.new(constants.TransformUsageDigestMethod[method])
         lib.update(node)
         return base64.b64encode(lib.digest())
@@ -241,7 +232,7 @@ class SignatureContext(object):
     def get_uri(self, uri, reference):
         """
         It returns the node of the specified URI
-        :param uri: uri of the 
+        :param uri: uri of the
         :type uri: str
         :param reference: Reference node
         :type reference: etree.lxml.Element
@@ -256,19 +247,19 @@ class SignatureContext(object):
             node = reference.getroottree()
             results = self.check_uri_attr(node, query, uri, constants.ID_ATTR)
             if len(results) == 0:
-                results = self.check_uri_attr(node, query, uri, 'ID')
+                results = self.check_uri_attr(node, query, uri, "ID")
             if len(results) == 0:
-                results = self.check_uri_attr(node, query, uri, 'Id')
+                results = self.check_uri_attr(node, query, uri, "Id")
             if len(results) == 0:
-                results = self.check_uri_attr(node, query, uri, 'id')
+                results = self.check_uri_attr(node, query, uri, "id")
             if len(results) > 1:
                 raise Exception(
                     "Ambiguous reference URI {} resolved to {} nodes".format(
-                        uri, len(results)))
-            elif len(results) == 1:
-                return self.canonicalization(
-                    constants.TransformInclC14N, results[0]
+                        uri, len(results)
+                    )
                 )
+            elif len(results) == 1:
+                return self.canonicalization(constants.TransformInclC14N, results[0])
         raise Exception('URI "' + uri + '" cannot be readed')
 
     def check_uri_attr(self, node, xpath_query, uri, attr):
@@ -283,28 +274,27 @@ class SignatureContext(object):
         :type sign: bool
         :return: None
         """
-        node = self.get_uri(reference.get('URI', ''), reference)
-        transforms = reference.find(
-            'ds:Transforms', namespaces=constants.NS_MAP
-        )
+        node = self.get_uri(reference.get("URI", ""), reference)
+        transforms = reference.find("ds:Transforms", namespaces=constants.NS_MAP)
         if transforms is not None:
             for transform in transforms.findall(
-                    'ds:Transform', namespaces=constants.NS_MAP
+                "ds:Transform", namespaces=constants.NS_MAP
             ):
                 node = self.transform(transform, node)
         digest_value = self.digest(
-            reference.find(
-                'ds:DigestMethod', namespaces=constants.NS_MAP
-            ).get('Algorithm'),
-            node
+            reference.find("ds:DigestMethod", namespaces=constants.NS_MAP).get(
+                "Algorithm"
+            ),
+            node,
         )
         if not sign:
-            return digest_value.decode() == reference.find(
-                'ds:DigestValue', namespaces=constants.NS_MAP
-            ).text
+            return (
+                digest_value.decode()
+                == reference.find("ds:DigestValue", namespaces=constants.NS_MAP).text
+            )
 
         reference.find(
-            'ds:DigestValue', namespaces=constants.NS_MAP
+            "ds:DigestValue", namespaces=constants.NS_MAP
         ).text = digest_value
 
     def calculate_signature(self, node, sign=True):
@@ -316,44 +306,39 @@ class SignatureContext(object):
         :type sign: bool
         :return: None
         """
-        signed_info_xml = node.find('ds:SignedInfo',
-                                    namespaces=constants.NS_MAP)
+        signed_info_xml = node.find("ds:SignedInfo", namespaces=constants.NS_MAP)
         canonicalization_method = signed_info_xml.find(
-            'ds:CanonicalizationMethod', namespaces=constants.NS_MAP
-        ).get('Algorithm')
+            "ds:CanonicalizationMethod", namespaces=constants.NS_MAP
+        ).get("Algorithm")
         signature_method = signed_info_xml.find(
-            'ds:SignatureMethod', namespaces=constants.NS_MAP
-        ).get('Algorithm')
+            "ds:SignatureMethod", namespaces=constants.NS_MAP
+        ).get("Algorithm")
         if signature_method not in constants.TransformUsageSignatureMethod:
-            raise Exception('Method ' + signature_method + ' not accepted')
+            raise Exception("Method " + signature_method + " not accepted")
         signature = constants.TransformUsageSignatureMethod[signature_method]
-        signed_info = self.canonicalization(
-            canonicalization_method, signed_info_xml
-        )
+        signed_info = self.canonicalization(canonicalization_method, signed_info_xml)
         if not sign:
-            signature_value = node.find('ds:SignatureValue',
-                                        namespaces=constants.NS_MAP).text
-            public_key = signature['method'].get_public_key(node, self)
-            signature['method'].verify(
-                signature_value,
-                signed_info,
-                public_key,
-                signature['digest']
+            signature_value = node.find(
+                "ds:SignatureValue", namespaces=constants.NS_MAP
+            ).text
+            public_key = signature["method"].get_public_key(node, self)
+            signature["method"].verify(
+                signature_value, signed_info, public_key, signature["digest"]
             )
         else:
             node.find(
-                'ds:SignatureValue', namespaces=constants.NS_MAP
-            ).text = b64_print(base64.b64encode(
-                signature['method'].sign(
-                    signed_info,
-                    self.private_key,
-                    signature['digest']
+                "ds:SignatureValue", namespaces=constants.NS_MAP
+            ).text = b64_print(
+                base64.b64encode(
+                    signature["method"].sign(
+                        signed_info, self.private_key, signature["digest"]
+                    )
                 )
-            ))
+            )
 
     def load_pkcs12(self, key):
         """
-        This function fills the context public_key, private_key and x509 from 
+        This function fills the context public_key, private_key and x509 from
         PKCS12 Object
         :param key: the PKCS12 Object
         :type key: OpenSSL.crypto.PKCS12
