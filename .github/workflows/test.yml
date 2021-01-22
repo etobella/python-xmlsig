@@ -1,0 +1,38 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: test XMLSIG
+
+on:
+    push:
+        branches: ["master"]
+    pull_request:
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                PYTHON_VERSION: ["2.7", "3.5", "3.6", "3.7"]
+        env:
+            LXML_VERSION: 4.3.0
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Python
+              uses: actions/setup-python@v2
+              with:
+                  python-version: ${{matrix.PYTHON_VERSION}}
+            - name: Configuration
+              run: |
+                  sudo apt update
+                  sudo apt install libssl-dev openssl libxml2 pkg-config
+            - name: Configure TOX
+              run: |
+                  pip install tox codecov tox-gh-actions
+                  pip install lxml==${LXML_VERSION}
+            - name: Run TOX
+              run: tox
+            - name: Codecov
+              run: |
+                  tox -e coverage-report
+                  codecov

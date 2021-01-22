@@ -4,6 +4,7 @@
 from cryptography.hazmat.primitives import hashes
 
 from .algorithms import HMACAlgorithm, RSAAlgorithm
+from .ns import NS_MAP  # noqa:F401
 from .ns import DSignNsMore, DSigNs, DSigNs11, EncNs
 
 ID_ATTR = "Id"
