@@ -4,6 +4,8 @@
 import struct
 import sys
 
+from cryptography.x509 import oid
+from cryptography.x509.name import _NAMEOID_TO_NAME, _escape_dn_value
 from lxml import etree
 
 USING_PYTHON2 = True if sys.version_info < (3, 0) else False
@@ -96,4 +98,15 @@ def get_rdns_name(rdns):
     :type rdns: cryptography.x509.RelativeDistinguishedName
     :return: RDNS name
     """
-    return ",".join(dn.rfc4514_string() for dn in rdns)
+    data = []
+    XMLSIG_NAMEOID_TO_NAME = _NAMEOID_TO_NAME.copy()
+    XMLSIG_NAMEOID_TO_NAME[oid.NameOID.SERIAL_NUMBER] = "SERIALNUMBER"
+    for dn in rdns:
+        dn_data = []
+        for attribute in dn._attributes:
+            key = XMLSIG_NAMEOID_TO_NAME.get(
+                attribute.oid, "OID.%s" % attribute.oid.dotted_string
+            )
+            dn_data.insert(0, "{}={}".format(key, _escape_dn_value(attribute.value)))
+        data.insert(0, "+".join(dn_data))
+    return ", ".join(data)

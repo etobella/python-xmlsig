@@ -10,7 +10,7 @@ from cryptography.x509.oid import ExtensionOID
 from lxml import etree
 
 from . import constants
-from .utils import b64_print, get_rdns_name
+from .utils import b64_print, create_node, get_rdns_name
 
 
 class SignatureContext(object):
@@ -24,6 +24,7 @@ class SignatureContext(object):
         self.private_key = None
         self.public_key = None
         self.key_name = None
+        self.ca_certificates = []
 
     def sign(self, node):
         """
@@ -104,6 +105,16 @@ class SignatureContext(object):
                 self.x509.public_bytes(encoding=serialization.Encoding.DER)
             )
             x509_certificate.text = b64_print(s)
+            for certificate in self.ca_certificates:
+                certificate_node = create_node(
+                    "X509Certificate", None, constants.DSigNs, tail="\n"
+                )
+                certificate_node.text = b64_print(
+                    base64.b64encode(
+                        certificate.public_bytes(encoding=serialization.Encoding.DER)
+                    )
+                )
+                x509_certificate.addnext(certificate_node)
 
     def fill_x509_issuer_name(self, x509_issuer_serial):
         """
