@@ -1,26 +1,21 @@
+import base64
 import unittest
-from os import path
-
-from OpenSSL import crypto
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-from cryptography.x509 import load_pem_x509_certificate
 
 import xmlsig
 from lxml import etree
-import base64
-from .base import parse_xml, compare, BASE_DIR
+
+from .base import compare, parse_xml
 
 
 class TestSignature(unittest.TestCase):
     def test_hmac(self):
-        template = parse_xml('data/sign-hmac-in.xml')
+        template = parse_xml("data/sign-hmac-in.xml")
 
         # Create a signature template for RSA-SHA1 enveloped signature.
         sign = xmlsig.template.create(
             c14n_method=xmlsig.constants.TransformExclC14N,
             sign_method=xmlsig.constants.TransformHmacSha1,
-            ns="ds"
+            ns="ds",
         )
 
         assert sign is not None
@@ -29,20 +24,15 @@ class TestSignature(unittest.TestCase):
         template.append(sign)
 
         # Add the <ds:Reference/> node to the signature template.
-        ref = xmlsig.template.add_reference(
-            sign, xmlsig.constants.TransformSha1
-        )
+        ref = xmlsig.template.add_reference(sign, xmlsig.constants.TransformSha1)
         # Add the enveloped transform descriptor.
         xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
 
         ref_obj = xmlsig.template.add_reference(
-            sign, xmlsig.constants.TransformSha1, uri="#R1")
-        xmlsig.template.add_transform(
-            ref_obj, xmlsig.constants.TransformBase64
+            sign, xmlsig.constants.TransformSha1, uri="#R1"
         )
-        obj = etree.SubElement(
-            sign, etree.QName(xmlsig.constants.DSigNs, 'Object')
-        )
+        xmlsig.template.add_transform(ref_obj, xmlsig.constants.TransformBase64)
+        obj = etree.SubElement(sign, etree.QName(xmlsig.constants.DSigNs, "Object"))
         obj.set("Id", "R1")
         obj.text = base64.b64encode(b"Some Text")
         ctx = xmlsig.SignatureContext()
@@ -50,4 +40,4 @@ class TestSignature(unittest.TestCase):
 
         ctx.sign(sign)
         ctx.verify(sign)
-        compare('data/sign-hmac-out.xml', template)
+        compare("data/sign-hmac-out.xml", template)

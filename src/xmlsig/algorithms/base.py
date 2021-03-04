@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2017 Creu Blanca
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
@@ -37,13 +36,11 @@ class Algorithm(object):
         :return: Public key to use
         """
         x509_certificate = key_info.find(
-            'ds:KeyInfo/ds:X509Data/ds:X509Certificate',
-            namespaces={'ds': ns.DSigNs}
+            "ds:KeyInfo/ds:X509Data/ds:X509Certificate", namespaces={"ds": ns.DSigNs}
         )
         if x509_certificate is not None:
             return load_der_x509_certificate(
-                base64.b64decode(x509_certificate.text),
-                default_backend()
+                base64.b64decode(x509_certificate.text), default_backend()
             ).public_key()
         if ctx.public_key is not None:
             return ctx.public_key

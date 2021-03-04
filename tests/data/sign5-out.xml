@@ -20,7 +20,7 @@ FghH31ewOXorKLptq2mAKxnaGqZMzEROAS9LN7GpJw7CTphm7Yf8o0ZtGB3+nI6h
 3hIs/y0QA1mYY2W5lD5IYQ==</SignatureValue>
 <KeyInfo Id="KI1">
 <X509Data>
-<X509SubjectName>C=US,stateOrProvinceName=California,O=XML Security Library (http://www.aleksey.com/xmlsec),OU=Examples RSA Certificate,CN=Aleksey Sanin,E=xmlsec@aleksey.com</X509SubjectName>
+<X509SubjectName>OID.1.2.840.113549.1.9.1=xmlsec@aleksey.com, CN=Aleksey Sanin, OU=Examples RSA Certificate, O=XML Security Library (http://www.aleksey.com/xmlsec), ST=California, C=US</X509SubjectName>
 <X509Certificate>MIIE3zCCBEigAwIBAgIBBTANBgkqhkiG9w0BAQQFADCByzELMAkGA1UEBhMCVVMx
 EzARBgNVBAgTCkNhbGlmb3JuaWExEjAQBgNVBAcTCVN1bm55dmFsZTE9MDsGA1UE
 ChM0WE1MIFNlY3VyaXR5IExpYnJhcnkgKGh0dHA6Ly93d3cuYWxla3NleS5jb20v
@@ -50,7 +50,7 @@ ss0uc1NxfahMaBoyG15IL4+beqO182fosaKJTrJNG3mc//ANGU9OsQM9mfBEt4oL
 NJ2D</X509Certificate>
 <X509SKI>JIQs8tRZIGKLLlyGkKOqMLonGpw=</X509SKI>
 <X509IssuerSerial>
-<X509IssuerName>C=US,stateOrProvinceName=California,L=Sunnyvale,O=XML Security Library (http://www.aleksey.com/xmlsec),OU=Root Certificate,CN=Aleksey Sanin,E=xmlsec@aleksey.com</X509IssuerName>
+<X509IssuerName>OID.1.2.840.113549.1.9.1=xmlsec@aleksey.com, CN=Aleksey Sanin, OU=Root Certificate, O=XML Security Library (http://www.aleksey.com/xmlsec), L=Sunnyvale, ST=California, C=US</X509IssuerName>
 <X509SerialNumber>5</X509SerialNumber>
 </X509IssuerSerial>
 </X509Data>
