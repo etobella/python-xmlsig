@@ -5,6 +5,7 @@ import base64
 import hashlib
 from os import path
 
+import OpenSSL
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import ExtensionOID
 from lxml import etree
@@ -352,9 +353,18 @@ class SignatureContext(object):
         This function fills the context public_key, private_key and x509 from
         PKCS12 Object
         :param key: the PKCS12 Object
-        :type key: OpenSSL.crypto.PKCS12
+        :type key: Union[OpenSSL.crypto.PKCS12, tuple]
         :return: None
         """
-        self.x509 = key.get_certificate().to_cryptography()
-        self.public_key = key.get_certificate().to_cryptography().public_key()
-        self.private_key = key.get_privatekey().to_cryptography_key()
+        if isinstance(key, OpenSSL.crypto.PKCS12):
+            # This would happen if we are using pyOpenSSL
+            self.x509 = key.get_certificate().to_cryptography()
+            self.public_key = key.get_certificate().to_cryptography().public_key()
+            self.private_key = key.get_privatekey().to_cryptography_key()
+        elif isinstance(key, tuple):
+            # This would happen if we are using cryptography
+            self.x509 = key[1]
+            self.public_key = key[1].public_key()
+            self.private_key = key[0]
+        else:
+            raise NotImplementedError()

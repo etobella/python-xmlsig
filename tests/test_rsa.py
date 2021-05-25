@@ -4,6 +4,7 @@ from os import path
 import xmlsig
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.x509 import load_pem_x509_certificate
 from OpenSSL import crypto
 
@@ -48,7 +49,51 @@ class TestSignature(unittest.TestCase):
         ctx = xmlsig.SignatureContext()
 
         with open(path.join(BASE_DIR, "data/keyStore.p12"), "rb") as key_file:
-            ctx.load_pkcs12(crypto.load_pkcs12(key_file.read()))
+            ctx.load_pkcs12(pkcs12.load_key_and_certificates(key_file.read(), None))
+        # Sign the template.
+        ctx.sign(sign)
+        ctx.verify(sign)
+        # Assert the contents of the XML document against the expected result.
+        compare("data/sign-res.xml", template)
+
+    def test_sign_generated_template_pem_with_x509_openssl(self):
+        """
+        Should sign a file using a dynamicaly created template, key from PEM
+        file and an X509 certificate.
+        """
+
+        # Load document file.
+        template = parse_xml("data/sign-doc.xml")
+
+        # Create a signature template for RSA-SHA1 enveloped signature.
+        sign = xmlsig.template.create(
+            c14n_method=xmlsig.constants.TransformExclC14N,
+            sign_method=xmlsig.constants.TransformRsaSha1,
+            ns=None,
+        )
+
+        assert sign is not None
+
+        # Add the <ds:Signature/> node to the document.
+        template.append(sign)
+
+        # Add the <ds:Reference/> node to the signature template.
+        ref = xmlsig.template.add_reference(sign, xmlsig.constants.TransformSha1)
+
+        # Add the enveloped transform descriptor.
+        xmlsig.template.add_transform(ref, xmlsig.constants.TransformEnveloped)
+
+        # Add the <ds:KeyInfo/> and <ds:KeyName/> nodes.
+        key_info = xmlsig.template.ensure_key_info(sign)
+        x509_data = xmlsig.template.add_x509_data(key_info)
+        xmlsig.template.x509_data_add_certificate(x509_data)
+        # Create a digital signature context (no key manager is needed).
+        # Load private key (assuming that there is no password).
+        # Set the key on the context.
+        ctx = xmlsig.SignatureContext()
+
+        with open(path.join(BASE_DIR, "data/keyStore.p12"), "rb") as key_file:
+            ctx.load_pkcs12(crypto.load_pkcs12(key_file.read(), None))
         # Sign the template.
         ctx.sign(sign)
         ctx.verify(sign)
