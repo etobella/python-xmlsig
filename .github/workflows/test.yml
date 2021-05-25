@@ -13,7 +13,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                PYTHON_VERSION: ["2.7", "3.5", "3.6", "3.7"]
+                PYTHON_VERSION: ["2.7", "3.5", "3.6", "3.7", "3.8"]
         env:
             LXML_VERSION: 4.3.0
         steps:
@@ -25,10 +25,11 @@ jobs:
             - name: Configuration
               run: |
                   sudo apt update
-                  sudo apt install libssl-dev openssl libxml2 pkg-config
+                  sudo apt install libssl-dev openssl libxml2 pkg-config libxslt-dev
             - name: Configure TOX
               run: |
-                  pip install tox codecov tox-gh-actions
+                  pip install pip --upgrade
+                  pip install tox codecov tox-gh-actions wheel
                   pip install lxml==${LXML_VERSION}
             - name: Run TOX
               run: tox
