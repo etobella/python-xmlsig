@@ -98,7 +98,7 @@ TransformUsageSignatureMethod = {
     TransformRsaSha384: {"digest": hashes.SHA384, "method": RSAAlgorithm},
     TransformRsaSha512: {"digest": hashes.SHA512, "method": RSAAlgorithm},
     TransformHmacSha1: {"digest": hashes.SHA1, "method": HMACAlgorithm},
-    TransformHmacSha224: {"digest": hashes.SHA256, "method": HMACAlgorithm},
+    TransformHmacSha224: {"digest": hashes.SHA224, "method": HMACAlgorithm},
     TransformHmacSha256: {"digest": hashes.SHA256, "method": HMACAlgorithm},
     TransformHmacSha384: {"digest": hashes.SHA384, "method": HMACAlgorithm},
     TransformHmacSha512: {"digest": hashes.SHA512, "method": HMACAlgorithm},

@@ -13,9 +13,11 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                PYTHON_VERSION: ["2.7", "3.5", "3.6", "3.7", "3.8"]
-        env:
-            LXML_VERSION: 4.3.0
+                PYTHON_VERSION: ["3.6", "3.7", "3.8", "3.9"]
+                LXML_VERSION: ["4.3.0", "4.6.4"]
+                exclude:
+                    - PYTHON_VERSION: "3.9"
+                      LXML_VERSION: "4.3.0"
         steps:
             - uses: actions/checkout@v2
             - name: Set up Python
@@ -25,15 +27,17 @@ jobs:
             - name: Configuration
               run: |
                   sudo apt update
-                  sudo apt install libssl-dev openssl libxml2 pkg-config libxslt-dev
+                  sudo apt install libssl-dev openssl libxml2-dev pkg-config libxslt-dev
             - name: Configure TOX
               run: |
                   pip install pip --upgrade
                   pip install tox codecov tox-gh-actions wheel
-                  pip install lxml==${LXML_VERSION}
-            - name: Run TOX
-              run: tox
-            - name: Codecov
+                  pip install lxml==${{matrix.LXML_VERSION}}
+            - name: Generate Report
               run: |
-                  tox -e coverage-report
-                  codecov
+                  pip install coverage
+                  pip install -r test-requirements.txt
+                  pip install .
+                  coverage run -m unittest
+            - name: Upload Coverage to Codecov
+              uses: codecov/codecov-action@v1
