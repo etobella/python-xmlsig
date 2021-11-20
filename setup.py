@@ -30,7 +30,7 @@ tests_require = [
 
 setup(
     name="xmlsig",
-    version="0.1.6",
+    version="0.1.7",
     description="Python based XML signature",
     long_description="XML Signature created with cryptography and lxml",
     author="Enric Tobella Alomar",
@@ -43,10 +43,10 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("src"),
     include_package_data=True,
-    license="BSD",
+    license="AGPL-3",
     classifiers=[
         "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: GNU Affero General Public License v3",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
