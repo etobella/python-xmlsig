@@ -30,7 +30,7 @@ tests_require = [
 
 setup(
     name="xmlsig",
-    version="0.1.7",
+    version="0.1.8",
     description="Python based XML signature",
     long_description="XML Signature created with cryptography and lxml",
     author="Enric Tobella Alomar",
