@@ -6,7 +6,6 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.x509 import load_pem_x509_certificate
-from OpenSSL import crypto
 
 from .base import BASE_DIR, compare, parse_xml
 
@@ -93,14 +92,14 @@ class TestSignature(unittest.TestCase):
         ctx = xmlsig.SignatureContext()
 
         with open(path.join(BASE_DIR, "data/keyStore.p12"), "rb") as key_file:
-            ctx.load_pkcs12(crypto.load_pkcs12(key_file.read(), None))
+            ctx.load_pkcs12(pkcs12.load_key_and_certificates(key_file.read(), None))
         # Sign the template.
         ctx.sign(sign)
         ctx.verify(sign)
         # Assert the contents of the XML document against the expected result.
         compare("data/sign-res.xml", template)
 
-    def tes_sign_case1(self):
+    def test_sign_case1(self):
         """Should sign a pre-constructed template file using a key from a PEM file."""
         root = parse_xml("data/sign1-in.xml")
         sign = root.xpath("//ds:Signature", namespaces={"ds": xmlsig.constants.DSigNs})[
@@ -118,7 +117,7 @@ class TestSignature(unittest.TestCase):
 
         ctx.sign(sign)
         ctx.verify(sign)
-        compare("sign1-out.xml", root)
+        compare("data/sign1-out.xml", root)
 
     def test_sign_case2(self):
         """Should sign a dynamicaly constructed template file using
@@ -254,6 +253,26 @@ class TestSignature(unittest.TestCase):
         ctx.sign(sign)
         ctx.verify(sign)
         compare("data/sign5-out.xml", root)
+
+    def test_sign_case6(self):
+        """Should sign a pre-constructed template file using a key from a PEM file."""
+        root = parse_xml("data/sign6-in.xml")
+        sign = root.xpath("//ds:Signature", namespaces={"ds": xmlsig.constants.DSigNs})[
+            0
+        ]
+        self.assertIsNotNone(sign)
+
+        ctx = xmlsig.SignatureContext()
+        with open(path.join(BASE_DIR, "data/rsakey.pem"), "rb") as key_file:
+            ctx.private_key = serialization.load_pem_private_key(
+                key_file.read(), password=None, backend=default_backend()
+            )
+        ctx.key_name = "rsakey.pem"
+        self.assertEqual("rsakey.pem", ctx.key_name)
+
+        ctx.sign(sign)
+        ctx.verify(sign)
+        compare("data/sign6-out.xml", root)
 
     def test_fail_reference(self):
         """Should sign a dynamicaly constructed template file using a key from a PEM file."""
