@@ -197,7 +197,7 @@ class SignatureContext(object):
                 )
             )
             root.remove(signature)
-            return self.canonicalization(constants.TransformInclC14N, root)
+            return self.canonicalization(constants.TransformInclC14N, root.getroottree())
         if method == constants.TransformBase64:
             try:
                 root = etree.fromstring(node)
