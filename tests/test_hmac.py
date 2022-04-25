@@ -1,8 +1,9 @@
 import base64
 import unittest
 
-import xmlsig
 from lxml import etree
+
+import xmlsig
 
 from .base import compare, parse_xml
 

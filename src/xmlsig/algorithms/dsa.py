@@ -7,6 +7,7 @@ from base64 import b64decode, b64encode
 from asn1crypto.algos import DSASignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import dsa
+
 from xmlsig.algorithms.base import Algorithm
 from xmlsig.ns import NS_MAP, DSigNs
 from xmlsig.utils import USING_PYTHON2, b64_print, create_node, long_to_bytes

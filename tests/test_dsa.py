@@ -1,8 +1,9 @@
 import unittest
 from os import path
 
-import xmlsig
 from cryptography.hazmat.primitives.serialization import pkcs12
+
+import xmlsig
 
 from .base import BASE_DIR, parse_xml
 
