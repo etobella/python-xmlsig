@@ -196,6 +196,14 @@ class SignatureContext(object):
                     transform.getparent().getparent().getparent().getparent()
                 )
             )
+            previous = signature.getprevious()
+            if previous is not None and signature.tail:
+                previous.tail = "".join([previous.tail or "", signature.tail or ""])
+            elif signature.tail:
+                signature.getparent().text = "".join(
+                    [signature.getparent().text or "", signature.tail or ""]
+                )
+            # When removing the signature node, we need to keep the tail
             root.remove(signature)
             return self.canonicalization(constants.TransformInclC14N, root)
         if method == constants.TransformBase64:
@@ -318,7 +326,10 @@ class SignatureContext(object):
         :type sign: bool
         :return: None
         """
-        signed_info_xml = node.find("ds:SignedInfo", namespaces=constants.NS_MAP)
+        signed_info_xml = etree.fromstring(
+            etree.tostring(node.find("ds:SignedInfo", namespaces=constants.NS_MAP))
+        )
+        # We need to extract it again in order to avoid namespace override.
         canonicalization_method = signed_info_xml.find(
             "ds:CanonicalizationMethod", namespaces=constants.NS_MAP
         ).get("Algorithm")

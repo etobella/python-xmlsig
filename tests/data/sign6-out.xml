@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+XML Security Library example: Signed file (sign1 example).
+-->
+<Envelope xmlns="urn:envelope">
+  <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <SignedInfo>
+      <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+      <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+      <Reference URI="">
+        <Transforms>
+          <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+        </Transforms>
+        <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+        <DigestValue>K8M/lPbKnuMDsO0Uzuj75lQtzQI=</DigestValue>
+      </Reference>
+    </SignedInfo>
+    <SignatureValue>ffxibbOIFFeJXQrgz3ydvPrKAfYWc+OpROK5z/ULtCrC2qZPoPvqb3ONzcNrIEmx
++PzzPO3XsQJuV2Wpn5YoOqgIVUS0wp7TVRvZs0Kiz06Gu8apQj1s5NxSKfdC7eZz
+izv2Zd/PYF4eSkObWqZvDVscdcV+3q2tNQf6WEEgif0iTwgdIRafR+pvcW1alA2x
+HPphiJt/eLWvckRaQr3TcLr4hO8YrBCFXpJ7MAIW3yEgUwM9ItpYLHXSYFRYsWef
+cg0fGWx3Qu86dlmDZrN8myNnh1s+fb2goIzP+7pGQ/LDRTIBGYwLg22jq+xAoJn5
+akG3YbT6VTbo1woIAMRHvQ==</SignatureValue>
+    <KeyInfo>
+	<KeyName>rsakey.pem</KeyName>
+    </KeyInfo>
+  </Signature>
+</Envelope>

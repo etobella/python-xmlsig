@@ -19,5 +19,5 @@ def compare(name, result):
     # Compare the results.
     if expected_text != result_text:
         print(expected_text)
-        print(result_text)
+        print(result_text.decode())
     assert expected_text == result_text
