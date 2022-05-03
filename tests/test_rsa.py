@@ -1,11 +1,12 @@
 import unittest
 from os import path
 
-import xmlsig
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.x509 import load_pem_x509_certificate
+
+import xmlsig
 
 from .base import BASE_DIR, compare, parse_xml
 
