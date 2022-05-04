@@ -3,9 +3,9 @@
 
 from cryptography.hazmat.primitives import hashes
 
-from .algorithms import HMACAlgorithm, RSAAlgorithm
+from .algorithms import DSAAlgorithm, HMACAlgorithm, RSAAlgorithm
 from .ns import NS_MAP  # noqa:F401
-from .ns import DSignNsMore, DSigNs, DSigNs11, EncNs
+from .ns import DSignNsMore, DSigNs, DSigNs2, DSigNs11, EncNs
 
 ID_ATTR = "Id"
 
@@ -18,6 +18,7 @@ TransformExclC14NWithComments = TransformExclC14N + "WithComments"
 TransformEnveloped = DSigNs + "enveloped-signature"
 TransformXPath = "http://www.w3.org/TR/1999/REC-xpath-19991116"
 TransformXPath2 = ""
+TransformXPathFilter2 = "http://www.w3.org/2002/06/xmldsig-filter2"
 TransformXPointer = ""
 TransformXslt = "http://www.w3.org/TR/1999/REC-xslt-19991116"
 TransformRemoveXmlTagsC14N = ""
@@ -61,6 +62,8 @@ TransformSha256 = EncNs + "sha256"
 TransformSha384 = DSignNsMore + "sha384"
 TransformSha512 = EncNs + "sha512"
 
+TransformXmlSig2Tranform = DSigNs2 + "transform"
+
 TransformUsageUnknown = {}
 TransformUsageDSigTransform = [TransformEnveloped, TransformBase64]
 TransformUsageC14NMethod = {
@@ -102,6 +105,8 @@ TransformUsageSignatureMethod = {
     TransformHmacSha256: {"digest": hashes.SHA256, "method": HMACAlgorithm},
     TransformHmacSha384: {"digest": hashes.SHA384, "method": HMACAlgorithm},
     TransformHmacSha512: {"digest": hashes.SHA512, "method": HMACAlgorithm},
+    TransformDsaSha1: {"digest": hashes.SHA1, "method": DSAAlgorithm},
+    TransformDsaSha256: {"digest": hashes.SHA256, "method": DSAAlgorithm},
 }
 
 TransformUsageEncryptionMethod = {}
