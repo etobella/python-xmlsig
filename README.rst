@@ -57,7 +57,7 @@ ECDSA and DSA is still being implemented
 License
 =======
 
-This library is published under the AGPL-3 license.
+This library is published under the LGPL-3 license.
 
 Contributors
 ============
