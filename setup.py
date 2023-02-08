@@ -25,7 +25,7 @@ tests_require = [
 
 setup(
     name="xmlsig",
-    version="0.1.9",
+    version="1.0.0",
     description="Python based XML signature",
     long_description="XML Signature created with cryptography and lxml",
     author="Enric Tobella Alomar",
@@ -38,7 +38,7 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("src"),
     include_package_data=True,
-    license="AGPL-3",
+    license="LGPL-3",
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: GNU Affero General Public License v3",
