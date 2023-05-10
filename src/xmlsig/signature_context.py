@@ -5,13 +5,17 @@ import base64
 import hashlib
 from os import path
 
-import OpenSSL
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import ExtensionOID
 from lxml import etree
 
 from . import constants
 from .utils import b64_print, create_node, get_rdns_name
+
+try:
+    import OpenSSL
+except ImportError:
+    OpenSSL = None
 
 
 class SignatureContext(object):
@@ -367,7 +371,7 @@ class SignatureContext(object):
         :type key: Union[OpenSSL.crypto.PKCS12, tuple]
         :return: None
         """
-        if isinstance(key, OpenSSL.crypto.PKCS12):
+        if OpenSSL is not None and isinstance(key, OpenSSL.crypto.PKCS12):
             # This would happen if we are using pyOpenSSL
             self.x509 = key.get_certificate().to_cryptography()
             self.public_key = key.get_certificate().to_cryptography().public_key()
