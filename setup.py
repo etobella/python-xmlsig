@@ -3,8 +3,6 @@ from setuptools import find_packages, setup
 install_requires = [
     "lxml>=3.0.0",
     "cryptography",
-    "asn1crypto",
-    "cffi",
 ]
 
 tests_require = [
