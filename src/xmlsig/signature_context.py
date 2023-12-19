@@ -250,15 +250,10 @@ class SignatureContext(object):
         :type reference: etree.lxml.Element
         :return: Element of the URI in a String
         """
-        print("wszedlem w nowa biblioteke trolo - test")
         if uri == "":
             return self.canonicalization(
                 constants.TransformInclC14N, reference.getroottree()
             )
-        if uri.startswith("h"):
-            # print("troloh")
-            return "TROLONOPE"
-
         if uri.startswith("#"):
             query = "//*[@*[local-name() = '{}' ]=$uri]"
             node = reference.getroottree()
