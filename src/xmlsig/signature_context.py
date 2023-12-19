@@ -250,7 +250,7 @@ class SignatureContext(object):
         :type reference: etree.lxml.Element
         :return: Element of the URI in a String
         """
-        print("wszedlem w nowa biblioteke trolo - test")
+        print("wszedlem w nowa biblioteke trolo - test brancha")
         if uri == "":
             return self.canonicalization(
                 constants.TransformInclC14N, reference.getroottree()
