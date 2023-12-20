@@ -27,11 +27,13 @@ class SignatureContext(object):
         self.key_name = None
         self.ca_certificates = []
 
-    def sign(self, node):
+    def sign(self, node, external_file=None):
         """
         Signs a Signature node
         :param node: Signature node
         :type node: lxml.etree.Element
+        :param external_file: xml file
+        :type external_file: str
         :return: None
         """
         signed_info = node.find("ds:SignedInfo", namespaces=constants.NS_MAP)
@@ -41,7 +43,7 @@ class SignatureContext(object):
         key_info = node.find("ds:KeyInfo", namespaces=constants.NS_MAP)
         if key_info is not None:
             self.fill_key_info(key_info, signature_method)
-        self.fill_signed_info(signed_info)
+        self.fill_signed_info(signed_info, external_files=external_file)
         self.calculate_signature(node)
 
     def fill_key_info(self, key_info, signature_method):
@@ -135,23 +137,35 @@ class SignatureContext(object):
         if x509_issuer_number is not None:
             x509_issuer_number.text = str(self.x509.serial_number)
 
-    def fill_signed_info(self, signed_info):
+    def select_file_to_reference(self, external_files, uri) -> str:
+        """Search for key from external file in passed URI"""
+        for key in external_files.keys():
+            if key in uri:
+                return external_files[key]
+
+    def fill_signed_info(self, signed_info, external_files=None):
         """
         Fills the SignedInfo node
         :param signed_info: SignedInfo node
         :type signed_info: lxml.etree.Element
+        :param external_files: dict of external files
+        :type external_files: dict
         :return: None
         """
         for reference in signed_info.findall(
             "ds:Reference", namespaces=constants.NS_MAP
         ):
-            self.calculate_reference(reference, True)
+            uri = reference.get('URI')
+            external_file_xml_str = self.select_file_to_reference(external_files, uri)
+            self.calculate_reference(reference, True, external_file=external_file_xml_str)
 
-    def verify(self, node):
+    def verify(self, node, external_files=None):
         """
         Verifies a signature
         :param node: Signature node
         :type node: lxml.etree.Element
+        :param external_files: xml file
+        :type external_files: str
         :return: None
         """
         # Added XSD Validation
@@ -165,7 +179,9 @@ class SignatureContext(object):
         for reference in signed_info.findall(
             "ds:Reference", namespaces=constants.NS_MAP
         ):
-            if not self.calculate_reference(reference, False):
+            uri = reference.get('URI')
+            external_file_xml = self.select_file_to_reference(external_files, uri)
+            if not self.calculate_reference(reference, False, external_file=external_file_xml):
                 raise Exception(
                     'Reference with URI:"' + reference.get("URI", "") + '" failed'
                 )
@@ -255,9 +271,6 @@ class SignatureContext(object):
             return self.canonicalization(
                 constants.TransformInclC14N, reference.getroottree()
             )
-        if uri.startswith("h"):
-            # print("troloh")
-            return "TROLONOPE"
 
         if uri.startswith("#"):
             query = "//*[@*[local-name() = '{}' ]=$uri]"
@@ -282,37 +295,58 @@ class SignatureContext(object):
     def check_uri_attr(self, node, xpath_query, uri, attr):
         return node.xpath(xpath_query.format(attr), uri=uri.lstrip("#"))
 
-    def calculate_reference(self, reference, sign=True):
+    def calculate_reference(self, reference, sign=True, external_file: str = None):
         """
         Calculates or verifies the digest of the reference
         :param reference: Reference node
         :type reference: lxml.etree.Element
         :param sign: It marks if we must sign or check a signature
         :type sign: bool
+        :param external_file: external xml file
+        :type external_file: str
         :return: None
         """
-        node = self.get_uri(reference.get("URI", ""), reference)
+        if external_file is None:
+            node = self.get_uri(reference.get("URI", ""), reference)
+        else:
+            node = ""  # hope this doesn't spoil anything
         transforms = reference.find("ds:Transforms", namespaces=constants.NS_MAP)
         if transforms is not None:
             for transform in transforms.findall(
-                "ds:Transform", namespaces=constants.NS_MAP
+                    "ds:Transform", namespaces=constants.NS_MAP
             ):
                 node = self.transform(transform, node)
-        digest_value = self.digest(
-            reference.find("ds:DigestMethod", namespaces=constants.NS_MAP).get(
-                "Algorithm"
-            ),
-            node,
-        )
+
+        if external_file is not None:
+            digest_value = self.calculate_external_file_digest(external_file)
+        else:
+            digest_value = self.digest(
+                reference.find("ds:DigestMethod", namespaces=constants.NS_MAP).get(
+                    "Algorithm"
+                ),
+                node,
+            )
         if not sign:
             return (
-                digest_value.decode()
-                == reference.find("ds:DigestValue", namespaces=constants.NS_MAP).text
+                    digest_value.decode()
+                    == reference.find("ds:DigestValue", namespaces=constants.NS_MAP).text
             )
 
         reference.find(
             "ds:DigestValue", namespaces=constants.NS_MAP
         ).text = digest_value
+
+    def calculate_external_file_digest(self, file_xml: str):
+        # remove NULL and special characters
+        xml_str_clean = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F]', '', file_xml)
+
+        # Reload clean string into 'bytes'
+        xml_data_clean = xml_str_clean.encode('utf-8')
+
+        # Calculate file digest
+        digest_value = hashlib.sha256(xml_data_clean).digest()
+        digest_value_base64 = base64.b64encode(digest_value)
+        return digest_value_base64
 
     def calculate_signature(self, node, sign=True):
         """
