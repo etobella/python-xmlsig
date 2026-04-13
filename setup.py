@@ -10,7 +10,7 @@ tests_require = [
     "mock==2.0.0",
     "pretend==1.0.8",
     "pytest-cov==2.5.1",
-    "pytest==3.1.3",
+    "pytest==9.0.3",
     "requests_mock>=0.7.0",
     "PyOpenSSL",
     "isort==4.2.5",
